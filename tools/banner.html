@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Railhead banner</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap">
+<style>
+  body { margin: 0; background: #222; }
+  #map { width: 2400px; display: block; position: absolute; left: -9999px; }
+  #banner { display: block; width: 1200px; }
+</style>
+</head>
+<body>
+<!-- Makes the harriercarrier.com home page banner: tools/banner.js loads this and saves the picture -->
+<canvas id="map"></canvas>
+<canvas id="banner" width="2400" height="900"></canvas>
+<script src="../js/data.js"></script>
+<script src="../js/sim.js"></script>
+<script src="../js/draw.js"></script>
+<script>
+  async function makeBanner() {
+    await document.fonts.load('40px "Special Elite"');
+    // A game part-way through, with trains rolling
+    const st = Sim.newGame(11);
+    for (let d = 0; d < 17; d++) Sim.endDay(st);
+    const map = document.getElementById('map');
+    Draw.init(map);
+    Draw.render(st, { anim: { t: 0.35, railheads: st.sectors.map(s => Sim.railhead(st, s).km), fronts: st.sectors.map(s => s.front) } });
+
+    const c = document.getElementById('banner'), g = c.getContext('2d');
+    const W = 2400, H = 900;
+    g.drawImage(map, 0, -330);
+    // Darken the edges so the title stands out
+    const v = g.createRadialGradient(W / 2, H / 2, 300, W / 2, H / 2, 1400);
+    v.addColorStop(0, 'rgba(30,22,12,0)'); v.addColorStop(1, 'rgba(30,22,12,.55)');
+    g.fillStyle = v; g.fillRect(0, 0, W, H);
+
+    // The title card in the middle, so phones (which see the middle) still get it
+    const cw = 1060, ch = 400, cx = (W - cw) / 2, cy = (H - ch) / 2 - 10;
+    g.save();
+    g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 40; g.shadowOffsetY = 12;
+    g.fillStyle = '#f4ead2'; g.fillRect(cx, cy, cw, ch);
+    g.restore();
+    g.strokeStyle = '#2b2418'; g.lineWidth = 6; g.strokeRect(cx + 18, cy + 18, cw - 36, ch - 36);
+    g.lineWidth = 2; g.strokeRect(cx + 30, cy + 30, cw - 60, ch - 60);
+    g.fillStyle = '#2b2418'; g.textAlign = 'center';
+    g.font = '170px "Special Elite"';
+    g.fillText('RAILHEAD', W / 2, cy + 190);
+    g.font = '46px "Special Elite"';
+    g.fillText('Eastern Front · Summer 1941', W / 2, cy + 262);
+    g.font = 'italic 38px Georgia, serif';
+    g.fillStyle = '#6e6350';
+    g.fillText('The generals fight. You keep the trains running.', W / 2, cy + 325);
+
+    // A red rubber stamp
+    g.save();
+    g.translate(cx + cw - 70, cy + ch + 20);
+    g.rotate(-0.16);
+    g.strokeStyle = 'rgba(163,41,28,.9)'; g.fillStyle = 'rgba(163,41,28,.9)';
+    g.lineWidth = 7; g.strokeRect(-150, -52, 300, 104);
+    g.font = '64px "Special Elite"'; g.textAlign = 'center';
+    g.fillText('PLAY ▶', 0, 22);
+    g.restore();
+
+    const small = document.createElement('canvas');
+    small.width = 1440; small.height = 540;
+    small.getContext('2d').drawImage(c, 0, 0, 1440, 540);
+    return { big: c.toDataURL('image/webp', 0.86), small: small.toDataURL('image/webp', 0.86) };
+  }
+</script>
+</body>
+</html>
