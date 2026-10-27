@@ -1,6 +1,6 @@
 # Railhead
 
-A browser logistics game: Summer 1941, you run German supply for Army Group Centre against a computer-run Red Army. Original design (not a copy of 1-48TACTIC or any other game).
+Repo: private GitHub `wizzard262/railhead`. A browser logistics game: Summer 1941, you run German supply for Army Group Centre against a computer-run Red Army. Original design (not a copy of 1-48TACTIC or any other game).
 
 - After every prompt about the game, add a short summary of it to [PROMPTS.md](PROMPTS.md) (spelling and typos fixed), as its note says
 - At the end of each session, record its length in the **Sessions** table at the bottom of PROMPTS.md (keep that table last)
