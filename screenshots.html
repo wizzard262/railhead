@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Railhead Screenshots</title>
+<style>
+  :root { --bg: #f7f9fc; --text: #1d2733; --muted: #5b6b7c; --accent: #2a6fb5; --line: #d9e1ea; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1822; --text: #e3eaf2; --muted: #9aabbd; --accent: #7fb6ee; --line: #26384a; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1140px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8em; line-height: 1.2; margin: 0 0 8px; }
+  p.lead { color: var(--muted); margin: 0 0 24px; }
+  a { color: var(--accent); }
+  .back { display: inline-block; margin-bottom: 20px; color: var(--muted); font-size: .9em; }
+  figure { margin: 0 0 40px; }
+  figcaption { font-weight: 600; margin-bottom: 8px; }
+  figcaption span { color: var(--muted); font-weight: 400; margin-right: 8px; }
+  img { display: block; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line); image-rendering: auto; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">&larr; Back to the game</a>
+  <h1>Railhead: screenshots</h1>
+  <p class="lead">The game as it was built, oldest first. See <a href="prompts.html">the prompts</a> for what changed each time.</p>
+  <div id="list">Loading…</div>
+</main>
+<script>
+  // screenshots/list.json lists the files in order; the caption comes from the file name
+  fetch('screenshots/list.json', { cache: 'no-cache' })
+    .then(r => r.json())
+    .then(files => {
+      const list = document.getElementById('list');
+      list.textContent = '';
+      for (const file of files) {
+        const m = file.match(/^(\d+)-(.*)\.png$/);
+        const fig = document.createElement('figure');
+        const cap = document.createElement('figcaption');
+        const num = document.createElement('span');
+        num.textContent = m ? m[1] : '';
+        cap.append(num, m ? m[2].replace(/-/g, ' ').replace(/^./, c => c.toUpperCase()) : file);
+        const img = document.createElement('img');
+        img.src = 'screenshots/' + file; img.alt = cap.textContent; img.loading = 'lazy';
+        fig.append(cap, img);
+        list.append(fig);
+      }
+    })
+    .catch(() => { document.getElementById('list').textContent = 'Could not load the screenshot list.'; });
+</script>
+</body>
+</html>

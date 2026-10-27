@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Railhead Prompts</title>
+<style>
+  :root { --bg: #f7f9fc; --text: #1d2733; --muted: #5b6b7c; --accent: #2a6fb5; --line: #d9e1ea; --quote: #eaf2fb; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1822; --text: #e3eaf2; --muted: #9aabbd; --accent: #7fb6ee; --line: #26384a; --quote: #16263a; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1140px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8em; line-height: 1.2; margin: 0 0 16px; }
+  h2 { font-size: 1.2em; margin: 32px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+  a { color: var(--accent); }
+  code { background: var(--quote); padding: 1px 5px; border-radius: 4px; font-size: .92em; }
+  blockquote { margin: 0; padding: 10px 16px; background: var(--quote); border-left: 4px solid var(--accent); border-radius: 4px; }
+  ul, ol { padding-left: 24px; }
+  li { margin: 2px 0; }
+  #content { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+  th, td { padding: 8px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  th { background: var(--quote); white-space: nowrap; }
+  td:nth-child(-n+3) { white-space: nowrap; }
+  .back { display: inline-block; margin-bottom: 20px; color: var(--muted); font-size: .9em; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./">&larr; Back to the game</a>
+  <div id="content">Loading…</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script>
+  fetch('PROMPTS.md', { cache: 'no-cache' })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(md => { document.getElementById('content').innerHTML = marked.parse(md); })
+    .catch(() => { document.getElementById('content').textContent = 'Could not load PROMPTS.md.'; });
+</script>
+</body>
+</html>

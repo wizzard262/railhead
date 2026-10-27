@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Railhead</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232b2418'/%3E%3Cpath d='M6 24h20M9 20h14M12 8v12M20 8v12' stroke='%23efe3c4' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap">
+<style>
+  :root {
+    --bg: #e6dcc3; --panel: #f6efdd; --ink: #2b2418; --muted: #6e6350; --line: #cbbd9a;
+    --good: #3f7a3a; --warn: #b4651a; --bad: #a3291c; --accent: #2f4f6f;
+    --fuel: #c47a1a; --ammo: #5a5a5a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fffaf0; color: var(--ink); border-radius: 6px; padding: 3px 9px; }
+  button:hover:not(:disabled) { border-color: var(--ink); }
+  button:disabled { opacity: .4; cursor: default; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .muted { color: var(--muted); }
+  .good { color: var(--good); } .warn { color: var(--warn); font-weight: 600; }
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 10px 16px; background: #2b2418; color: #f2e8cf; }
+  header h1 { margin: 0; font: 24px "Special Elite", monospace; letter-spacing: 2px; }
+  header .when { display: flex; flex-direction: column; line-height: 1.2; }
+  header #date { font: 15px "Special Elite", monospace; }
+  header #day { font-size: 12px; opacity: .75; }
+  #objectives { display: flex; gap: 6px; flex-wrap: wrap; }
+  .obj { padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,.1); font-size: 13px; }
+  .obj.done { background: rgba(120,190,110,.3); }
+  header .links { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  header .links a { color: #d8cba8; font-size: 12px; }
+  header button { background: transparent; color: #f2e8cf; border-color: rgba(255,255,255,.3); }
+  #ver { font-size: 11px; opacity: .55; }
+
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 12px; padding: 12px 16px 24px; max-width: 1700px; margin: 0 auto; }
+  .mapwrap { min-width: 0; }
+  #map { width: 100%; display: block; border-radius: 6px; box-shadow: 0 2px 10px rgba(40,30,15,.25); background: #efe3c4; touch-action: manipulation; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
+  .legend i { display: inline-block; vertical-align: middle; margin-right: 4px; }
+  .lg-track { width: 22px; height: 4px; background: #2b2418; }
+  .lg-broad { width: 22px; height: 0; border-top: 3px dashed rgba(120,40,30,.7); }
+  .lg-front { width: 22px; height: 4px; background: rgba(150,35,25,.85); }
+
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+  .box h2 { margin: 0 0 6px; font: 15px "Special Elite", monospace; }
+  #report { margin: 0; padding-left: 0; list-style: none; }
+  #report li { padding: 2px 0; border-bottom: 1px dotted var(--line); }
+  #report li.intel { color: var(--bad); font-weight: 600; }
+
+  aside { min-width: 0; }
+  #pools { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; }
+  #pools span { color: var(--muted); }
+  #pools span.have { color: var(--good); font-weight: 600; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--sec); border-radius: 8px; padding: 8px 12px; margin-top: 10px; }
+  .card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .card-head h3 { margin: 0; font: 17px "Special Elite", monospace; color: var(--sec); }
+  .status { font-size: 12px; padding: 1px 8px; border-radius: 10px; }
+  .status.ok { background: rgba(63,122,58,.15); color: var(--good); }
+  .status.meh { background: rgba(196,122,26,.18); color: var(--warn); }
+  .status.bad { background: rgba(163,41,28,.15); color: var(--bad); font-weight: 600; }
+  .seg { margin-left: auto; display: inline-flex; }
+  .seg button { border-radius: 0; margin-left: -1px; }
+  .seg button:first-child { border-radius: 6px 0 0 6px; }
+  .seg button:last-child { border-radius: 0 6px 6px 0; }
+  .seg button.on { background: var(--ink); color: #f6efdd; border-color: var(--ink); }
+  .seg.small { margin-left: 0; }
+  .seg.small button { padding: 1px 7px; font-size: 12px; }
+  .info { font-size: 13px; margin: 6px 0 4px; }
+  .stocks { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+  .bar { display: inline-block; width: 44px; height: 7px; background: rgba(40,30,15,.15); border-radius: 4px; overflow: hidden; vertical-align: middle; }
+  .bar i { display: block; height: 100%; }
+  .bar.fuel i { background: var(--fuel); } .bar.ammo i { background: var(--ammo); }
+  .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; flex-wrap: wrap; }
+  .row .lbl { width: 92px; flex: none; font-size: 13px; }
+  .step { display: inline-flex; align-items: center; gap: 4px; }
+  .step button { width: 28px; height: 28px; padding: 0; font-size: 16px; line-height: 1; }
+  .step b { min-width: 22px; text-align: center; font-size: 15px; }
+  .note { font-size: 12px; color: var(--muted); flex: 1 1 140px; min-width: 0; }
+  input[type=range] { width: 120px; accent-color: var(--fuel); }
+  button.tiny { padding: 1px 7px; font-size: 12px; }
+  .forces { font-size: 13px; border-top: 1px dotted var(--line); margin-top: 4px; padding-top: 4px; }
+  .forces span { margin-right: 6px; }
+
+  #reserves .unit { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; padding: 5px 0; border-bottom: 1px dotted var(--line); font-size: 13px; }
+  .send { display: inline-flex; gap: 4px; }
+  .send button { border-left: 4px solid var(--sec); font-size: 12px; padding: 2px 7px; }
+  .topbar { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; align-items: stretch; background: var(--bg); padding-bottom: 2px; }
+  .topbar #pools { flex: 1; }
+  #end-btn { flex: none; padding: 8px 16px; font: 18px "Special Elite", monospace; background: #2b2418; color: #f6efdd; border: none; border-radius: 8px; }
+  #end-btn span { display: block; font: 11px system-ui, sans-serif; opacity: .6; }
+  #end-btn:hover:not(:disabled) { background: #43382a; }
+  .res-hint { margin: 0 0 4px; font-size: 13px; color: var(--warn); }
+
+  #tip { position: fixed; z-index: 20; background: #fffaf0; border: 1px solid var(--ink); border-radius: 6px; padding: 6px 9px; font-size: 13px; pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,.2); max-width: 210px; }
+
+  .modal { position: fixed; inset: 0; z-index: 30; background: rgba(30,22,12,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal[hidden] { display: none; }
+  .modal .sheet { background: var(--panel); border-radius: 10px; max-width: 720px; width: 100%; max-height: 92vh; overflow: auto; padding: 18px 22px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+  .modal h2 { font: 22px "Special Elite", monospace; margin: 0 0 8px; }
+  .modal ul { padding-left: 20px; }
+  .modal li { margin: 3px 0; }
+  .modal .go { margin-top: 10px; padding: 8px 18px; background: #2b2418; color: #f6efdd; border: none; font-size: 15px; }
+
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    header { padding: 8px 12px; }
+    main { padding: 8px 12px 20px; }
+    .row .lbl { width: 84px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>RAILHEAD</h1>
+  <div class="when"><span id="date"></span><span id="day"></span></div>
+  <div id="objectives"></div>
+  <div class="links">
+    <button id="help-btn">How to play</button>
+    <button id="new-btn">New game</button>
+    <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
+    <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
+    <span id="ver">v1</span>
+  </div>
+</header>
+
+<main>
+  <div class="mapwrap">
+    <canvas id="map" aria-label="Staff map of the front, from Warsaw to Smolensk"></canvas>
+    <div class="legend">
+      <span><i class="lg-track"></i>Converted track</span>
+      <span><i class="lg-broad"></i>Russian broad gauge</span>
+      <span><i class="lg-front"></i>Front line</span>
+      <span>⚑ Railhead · ■ big station · bar = condition · <b style="color:#a3291c">?</b> reported Soviet build-up</span>
+    </div>
+    <div class="box">
+      <h2>Yesterday's report</h2>
+      <ul id="report"></ul>
+    </div>
+    <div class="box">
+      <h2>Reserves at Warsaw</h2>
+      <div id="reserves"></div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="topbar">
+      <div id="pools"></div>
+      <button id="end-btn">End day ▶ <span>Enter</span></button>
+    </div>
+    <div id="sectors"></div>
+  </aside>
+</main>
+
+<div id="tip" hidden></div>
+
+<div class="modal" id="help">
+  <div class="sheet">
+    <h2>How to play</h2>
+    <p>Summer 1941. You run supply for Army Group Centre. The generals fight; <b>you decide what reaches them</b>. Take <b>Vitebsk, Smolensk and Roslavl</b> by 4 August.</p>
+    <ul>
+      <li>🚂 <b>Trains</b> run only on converted track. Russian track is a wider gauge, so your trains stop at the <b>railhead</b>.</li>
+      <li>🚚 <b>Trucks</b> carry supplies from the railhead to the front. The further the front gets ahead, the less they carry, and they burn fuel doing it.</li>
+      <li>🛠️ <b>Engineers</b> convert track and repair stations. The Soviets wreck stations as they retreat: the faster you take them, the less damage.</li>
+      <li>✈️ <b>Bombers</b> slow Soviet resistance. Put them where air recon reports a <b>build-up</b> to weaken the counterattack. They burn fuel from that sector's depot.</li>
+      <li>🪖 <b>Reserves</b> arrive at Warsaw. Send them east by train: infantry is cheap, panzers move fast but drink fuel, artillery beats counterattacks but eats ammo. Every unit you add needs feeding.</li>
+      <li>⛽ / 💥 Set each sector's <b>fuel and ammo mix</b>. <b>Match needs</b> sets it for you.</li>
+      <li>🛡️ Soviet counterattacks hit the <b>weakest</b> sector. Keep ammo at the front, or they break through.</li>
+      <li>💥 Soviet bombers hit the <b>fullest depot</b>. Don't pile everything in one place.</li>
+    </ul>
+    <p class="muted">Hover a station to see its condition. Each sector card says what is holding it back.</p>
+    <button class="go" data-close>Start</button>
+  </div>
+</div>
+
+<div class="modal" id="result" hidden>
+  <div class="sheet">
+    <div id="result-text"></div>
+    <button class="go" id="again-btn">New game</button>
+    <button data-close>Look at the map</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/draw.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
