@@ -9,7 +9,7 @@ const UI = (() => {
   function init(state, changed) {
     st = state; onChange = changed;
     buildSectors();
-    $('#help-btn').onclick = () => show('#help');
+    $('#help-btn').onclick = $('#help-btn2').onclick = () => show('#help');
     $('#new-btn').onclick = () => { if (confirm('Start a new game?')) window.Game.restart(); };
     for (const b of document.querySelectorAll('[data-close]')) b.onclick = () => hide(b.closest('.modal'));
     $('#again-btn').onclick = () => { hide($('#result')); window.Game.restart(); };

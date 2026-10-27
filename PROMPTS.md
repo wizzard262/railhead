@@ -30,8 +30,14 @@
 - **C:** each sector card shows its pipe: Warsaw → trains → railhead depot → trucks → front. Each pipe is green, amber or red by how well it keeps up, and the narrowest one is labelled
 - Reserves grouped by type (e.g. "3 × Infantry division")
 
+## 5. Publish it on harriercarrier.com
+
+- Publish it at the bottom of the Harrier Carrier home page, like Swooping Simulator. Steve will play it on his laptop later
+- Stop. First make it easy to find the start-screen pop-up again, then publish
+  - **📖 How to play** is now a bright orange button at the top, there's an orange **?** next to End day, and **H** opens it; the pop-up says so
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
-| 1 | 2026-10-27 | about 150 min | Prompts 1–4: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card |
+| 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |

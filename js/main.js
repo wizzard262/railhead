@@ -49,6 +49,7 @@ window.Game = (() => {
   document.getElementById('end-btn').onclick = endDay;
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.target.closest('button, input') && document.querySelectorAll('.modal:not([hidden])').length === 0) { e.preventDefault(); endDay(); }
+    if ((e.key === 'h' || e.key === 'H' || e.key === '?') && !e.target.closest('input')) UI.show('#help');
     if (e.key === 'Escape') for (const m of document.querySelectorAll('.modal')) m.hidden = true;
   });
   canvas.addEventListener('pointermove', e => {
