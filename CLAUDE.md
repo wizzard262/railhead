@@ -12,6 +12,6 @@ A browser logistics game: Summer 1941, you run German supply for Army Group Cent
   - `js/data.js` the map and every number to tune; `js/sim.js` the rules (no DOM, also runs in Node); `js/draw.js` the staff map; `js/ui.js` the panel, report and pop-ups; `js/main.js` start-up, the end-of-day animation and input
 - The version number (`#ver` in `index.html`) goes up by 1 with every commit to the game: `git rev-list --count HEAD` + 1
 - Tone: about trains, trucks and weather. No Nazi symbols or politics; demolitions hit infrastructure only
-- Published on harriercarrier.com: a copy lives in `C:\DEV\Repositories\Azure\HarrierCarrierWebsiteailhead` (live at https://www.harriercarrier.com/railhead/index.html), with a banner panel at the bottom of the home page
+- Published on harriercarrier.com: a copy lives in `C:\DEV\Repositories\Azure\HarrierCarrierWebsite\railhead` (live at https://www.harriercarrier.com/railhead/index.html), with a banner panel at the bottom of the home page
   - To update it: copy `index.html`, `js/`, `prompts.html`, `PROMPTS.md`, `screenshots.html` and `screenshots/` over that folder, then commit and push the website repo (Azure DevOps; the first push sometimes says Authentication failed, push again)
   - Banner: `node tools/banner.js <folder>` makes `railhead_banner.webp` and `railhead_banner_1440.webp` for the website's `assets/`
