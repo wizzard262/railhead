@@ -61,8 +61,9 @@ const UI = (() => {
       head.append(posture);
       card.append(head);
 
-      const info = el('div', 'info');
-      card.append(info);
+      const pipe = el('div', 'pipe');
+      const advice = el('div', 'advice');
+      card.append(pipe, advice);
 
       const free = (field, total) => Sim.freePool(st, field, total) > 0;
       const rows = [
@@ -111,7 +112,7 @@ const UI = (() => {
       card.append(forces);
 
       wrap.append(card);
-      cards.push({ sec, status, adv, hold, info, rows, fseg, slider, mixNote, forces });
+      cards.push({ sec, status, adv, hold, pipe, advice, rows, fseg, slider, mixNote, forces });
     });
   }
 
@@ -140,13 +141,123 @@ const UI = (() => {
     return s;
   }
 
-  const LIMIT_TEXT = {
-    supply: 'held back by supply',
-    resistance: 'held back by Soviet resistance: more units or bombers help',
-    mobility: 'moving as fast as its units can: panzers go faster',
-  };
+  // What flows through each part of a sector's pipe, in tons a day
+  function flows(sec) {
+    const n = Sim.needs(sec);
+    const need = n.fuel + n.ammo;
+    const gap = Sim.gap(st, sec);
+    const d = Math.max(20, gap);
+    const perTruck = TRUCK_TONS * Math.min(2, TRUCK_KM_PER_DAY / (2 * d));
+    const truckCap = Sim.truckCapacity(st, sec);
+    const burn = need * d * TRUCK_FUEL;
+    const bomberFuel = sec.bombers * BOMBER_FUEL;
+    const f = window.Game.forecast[sec.id] || { trains: 0, supplyTrains: 0 };
+    const trainTons = f.supplyTrains * TRAIN_TONS;
+    const trainNeed = need + burn + bomberFuel;
+    return {
+      n, need, gap, perTruck, truckCap, burn, bomberFuel, trainTons, trainNeed,
+      lineShort: f.trains + 0.05 < sec.trains + troopFor(sec.id), lineTakes: f.trains,
+      trainRatio: trainTons / Math.max(1, trainNeed),
+      truckRatio: truckCap / Math.max(1, need),
+      daysF: sec.stock.fuel / Math.max(1, n.fuel), daysA: sec.stock.ammo / Math.max(1, n.ammo),
+      depotDaysF: sec.depot.fuel / Math.max(1, n.fuel + burn + bomberFuel),
+      depotDaysA: sec.depot.ammo / Math.max(1, n.ammo),
+    };
+  }
 
-  function bar(v, cls) { return `<span class="bar ${cls}"><i style="width:${Math.max(0, Math.min(100, v * 100))}%"></i></span>`; }
+  const tone = r => r >= 1 ? 'ok' : r >= 0.75 ? 'meh' : 'bad';
+  const secName = id => Sim.sectorDef(id).name;
+
+  // The worst station between Warsaw and this sector's railhead
+  function chokeStation(sec) {
+    const rh = Sim.railhead(st, sec), line = Sim.sectorDef(sec.id).line;
+    let worst = null;
+    for (let i = 1; i <= rh.index; i++) {
+      if (!worst || st.nodes[line[i]].cond < st.nodes[worst].cond) worst = line[i];
+    }
+    return worst;
+  }
+
+  // Another sector with trucks or trains to spare
+  function donor(sec, kind) {
+    let best = null, spare = 0;
+    for (const o of st.sectors) {
+      if (o === sec) continue;
+      const f = flows(o);
+      const s = kind === 'trucks'
+        ? (o.posture === 'hold' ? o.trucks - 1 : Math.floor((f.truckCap - f.need) / Math.max(1, f.perTruck)))
+        : (o.posture === 'hold' ? o.trains - 1 : Math.floor((f.trainTons - f.trainNeed) / TRAIN_TONS + (f.depotDaysF > 4 && f.depotDaysA > 4 ? 1 : 0)));
+      if (s > spare) { spare = s; best = o; }
+    }
+    return best ? { sec: best, n: spare } : null;
+  }
+
+  // Where to get more trucks or trains from
+  function source(sec, kind, more) {
+    const free = kind === 'trucks' ? Sim.freePool(st, 'trucks', TRUCK_COLUMNS) : Sim.freeTrains(st);
+    if (free > 0) return ` (${free} free)`;
+    const d = donor(sec, kind);
+    return d ? ` (take ${Math.min(more, d.n)} from <b>${secName(d.sec.id)}</b>)` : '';
+  }
+
+  // One line of advice: the most urgent thing to fix in this sector
+  function advise(sec) {
+    const f = flows(sec);
+    const atEnd = sec.front >= Sim.LINES[sec.id][Sim.LINES[sec.id].length - 1];
+    const threat = st.intel && st.intel.sector === sec.id;
+    if (atEnd && sec.posture === 'advance') return ['ok', '🏁 Objective taken. Set <b>Hold</b> and give its trains, trucks and engineers to the other sectors.'];
+    if (atEnd) return ['ok', '🏁 Objective held. Keep a little ammo coming in case the Soviets counterattack.'];
+    if (threat && (f.daysA < 2.5 || sec.bombers < 3)) {
+      const what = [];
+      if (sec.bombers < 3) what.push('send <b>bombers</b> here to break up the build-up');
+      if (f.daysA < 2.5) what.push('get <b>ammo</b> to the front');
+      return ['bad', `🔍 Recon says the Soviets are massing here: ${what.join(', and ')}.`];
+    }
+    if (sec.posture === 'hold') return ['meh', '⏸️ Holding: stocks are building up. Press <b>Advance</b> once the front has about 3 days of fuel and ammo.'];
+    const choke = () => {
+      const c = chokeStation(sec);
+      if (!c) return '';
+      if (st.nodes[c].cond >= 85) {
+        const users = st.sectors.filter(o => Sim.sectorDef(o.id).line.indexOf(c) > 0 && Sim.sectorDef(o.id).line.indexOf(c) <= Sim.railhead(st, o).index);
+        if (users.length > 1) return `: the track through <b>${NODES[c].name}</b> is shared by ${users.map(o => secName(o.id)).join(' and ')} and is full`;
+      }
+      return `: <b>${NODES[c].name}</b> station is at ${Math.round(st.nodes[c].cond)}%`;
+    };
+    if (f.lineShort && f.trainRatio < 1) return ['bad', `🚧 The line only takes <b>${f.lineTakes.toFixed(1)}</b> trains a day${choke()}. Set engineers to <b>Repair</b> so more get through.`];
+    const depotDays = Math.min(f.depotDaysF, f.depotDaysA);
+    if (f.truckRatio < 1 && (f.truckRatio <= f.trainRatio || depotDays > 2)) {
+      const more = Math.ceil((f.need - f.truckCap) / Math.max(1, f.perTruck));
+      return [tone(f.truckRatio), `🚚 Trucks carry ${t(f.truckCap)} of the ${t(f.need)} t a day the front uses, over ${t(f.gap)} km. Add <b>${more}</b> truck${more > 1 ? 's' : ''}${source(sec, 'trucks', more)}, or more <b>engineers</b> to bring the railhead closer.`];
+    }
+    if (f.trainRatio < 1 && depotDays < 3) {
+      const more = Math.ceil((f.trainNeed - f.trainTons) / TRAIN_TONS);
+      return [tone(f.trainRatio), `🚂 Trains bring ${t(f.trainTons)} t a day; this sector needs about ${t(f.trainNeed)} with truck and bomber fuel. Add <b>${more}</b> train${more > 1 ? 's' : ''}${source(sec, 'trains', more)}.`];
+    }
+    if (f.lineShort) return ['meh', `🚧 Only <b>${f.lineTakes.toFixed(1)}</b> of your trains get through${choke()}. Move the extra trains to another sector, or set engineers to <b>Repair</b>.`];
+    if (f.depotDaysA < 1 && f.depotDaysF > 3) return ['meh', '💥 The depot is nearly out of <b>ammo</b> but has spare fuel. Move the mix toward ammo, or press <b>Match needs</b>.'];
+    if (f.depotDaysF < 1 && f.depotDaysA > 3) return ['meh', '⛽ The depot is nearly out of <b>fuel</b> but has spare ammo. Move the mix toward fuel, or press <b>Match needs</b>.'];
+    if (sec.depot.fuel + sec.depot.ammo > 9000) return ['meh', '🎯 This depot is very full: a magnet for Soviet bombers. Send some of its trains to a sector that needs them.'];
+    if (sec.limit === 'resistance') return ['meh', '🛡️ Supply is fine; Soviet resistance is the brake. Add <b>bombers</b>, or send <b>artillery</b> or a <b>panzer division</b>.'];
+    if (sec.limit === 'mobility') {
+      const pz = st.reserves.some(u => u.type === 'pz');
+      return ['ok', `✅ Supply is keeping up. It's moving as fast as its units can${pz ? ': a <b>panzer division</b> from the reserves would speed it up' : ''}.`];
+    }
+    return ['ok', '✅ Supply is keeping up.'];
+  }
+
+  // Warsaw → trains → depot → trucks → front, narrowest part in red
+  function pipeHTML(sec) {
+    const f = flows(sec), rh = Sim.railhead(st, sec);
+    const weakest = Math.min(f.trainRatio, f.truckRatio);
+    const seg = (r, label, sub) => `<div class="pipe-seg ${tone(r)}"><span class="flow">${label}</span><i></i><span class="sub">${sub}</span>${r < 1 && r === weakest ? '<span class="neck">narrowest</span>' : ''}</div>`;
+    const days = (v, c) => `<span class="${v < 1 ? 'warn' : ''}">${c} ${v.toFixed(1)} d</span>`;
+    return `
+      <div class="pipe-node"><b>Warsaw</b><small>base</small></div>
+      ${seg(f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineShort ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`)}
+      <div class="pipe-node" title="Railhead depot"><b>${NODES[rh.node].name}</b><small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
+      ${seg(f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`)}
+      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽')}</small><small>${days(f.daysA, '💥')}</small><small>uses ${t(f.need)}</small></div>`;
+  }
 
   function update() {
     const date = Sim.dateText(Math.min(st.day, LAST_DAY));
@@ -158,20 +269,14 @@ const UI = (() => {
 
     for (const c of cards) {
       const { sec } = c;
-      const n = Sim.needs(sec), rh = Sim.railhead(st, sec), gap = Sim.gap(st, sec);
-      const atEnd = sec.front >= Sim.LINES[sec.id][Sim.LINES[sec.id].length - 1];
       c.status.textContent = sec.status || '';
       c.status.className = 'status ' + (/Stalled|Pushed|out of/.test(sec.status) ? 'bad' : /Slowed/.test(sec.status) ? 'meh' : 'ok');
       c.adv.classList.toggle('on', sec.posture === 'advance');
       c.hold.classList.toggle('on', sec.posture === 'hold');
-      const dF = sec.stock.fuel / Math.max(1, n.fuel), dA = sec.stock.ammo / Math.max(1, n.ammo);
-      c.info.innerHTML = `
-        <div>Railhead <b>${NODES[rh.node].name}</b> · front <b>${t(gap)} km</b> beyond it${atEnd ? ' · <b class="good">objective reached</b>' : ''}</div>
-        <div class="stocks">
-          <span>Depot ⛽ <b>${t(sec.depot.fuel)}</b> t · 💥 <b>${t(sec.depot.ammo)}</b> t</span>
-          <span>Front ⛽ ${bar(dF / 3, 'fuel')} <b>${dF.toFixed(1)}</b> d · 💥 ${bar(dA / 3, 'ammo')} <b>${dA.toFixed(1)}</b> d</span>
-        </div>
-        <div class="muted">Uses ${t(n.fuel + n.ammo)} t a day (${t(n.fuel)} fuel, ${t(n.ammo)} ammo)${sec.limit && sec.posture === 'advance' && !atEnd ? ' · ' + LIMIT_TEXT[sec.limit] : ''}</div>`;
+      c.pipe.innerHTML = pipeHTML(sec);
+      const [adviceTone, adviceText] = advise(sec);
+      c.advice.className = 'advice ' + adviceTone;
+      c.advice.innerHTML = adviceText;
       for (const r of c.rows) r.update();
       for (const b of c.fseg.children) b.classList.toggle('on', b.dataset.k === sec.focus);
       c.slider.value = sec.fuelMix;
@@ -189,17 +294,19 @@ const UI = (() => {
     res.textContent = '';
     if (!st.reserves.length && !st.queue.length) res.append(el('p', 'muted', 'No units waiting. More arrive over the coming weeks.'));
     if (st.reserves.length && Sim.freeTrains(st) < 2) res.append(el('p', 'res-hint', "👉 To send a unit, free some trains first: lower a sector's 🚂 Trains."));
-    for (const u of st.reserves) {
-      const T = UNIT_TYPES[u.type];
+    for (const type of UNIT_ORDER) {
+      const units = st.reserves.filter(u => u.type === type);
+      if (!units.length) continue;
+      const T = UNIT_TYPES[type];
       const row = el('div', 'unit');
-      row.append(el('span', '', `<b>${T.name}</b> <span class="muted">needs ${T.trains} trains · then uses ${T.need.advance.fuel + T.need.advance.ammo} t a day</span>`));
+      row.append(el('span', '', `<b>${units.length} × ${T.name}</b> <span class="muted">each needs ${T.trains} trains, then ${T.need.advance.fuel + T.need.advance.ammo} t a day</span>`));
       const btns = el('span', 'send');
       for (const sec of st.sectors) {
         const b = el('button', '', '→ ' + Sim.sectorDef(sec.id).name);
         b.style.setProperty('--sec', Sim.sectorDef(sec.id).colour);
         b.disabled = Sim.freeTrains(st) < T.trains;
-        b.title = b.disabled ? `Free ${T.trains} trains first (take them off a sector's supply trains)` : `Load it on the next trains to ${Sim.sectorDef(sec.id).name}`;
-        b.onclick = () => { Sim.sendUnit(st, u.id, sec.id); onChange(); };
+        b.title = b.disabled ? `Free ${T.trains} trains first (take them off a sector's supply trains)` : `Load one on the next trains to ${Sim.sectorDef(sec.id).name}`;
+        b.onclick = () => { Sim.sendUnit(st, units[0].id, sec.id); onChange(); };
         btns.append(b);
       }
       row.append(btns);

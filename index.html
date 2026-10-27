@@ -68,7 +68,23 @@
   .seg button.on { background: var(--ink); color: #f6efdd; border-color: var(--ink); }
   .seg.small { margin-left: 0; }
   .seg.small button { padding: 1px 7px; font-size: 12px; }
-  .info { font-size: 13px; margin: 6px 0 4px; }
+  .pipe { display: grid; grid-template-columns: minmax(54px, .8fr) minmax(70px, 1fr) minmax(86px, 1.2fr) minmax(70px, 1fr) minmax(80px, 1.1fr); align-items: center; margin: 14px 0 6px; font-size: 12px; }
+  .pipe-node { background: #fffaf0; border: 1.5px solid var(--ink); border-radius: 6px; padding: 3px 5px; line-height: 1.25; min-width: 0; }
+  .pipe-node b { display: block; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pipe-node small { display: block; font-size: 10.5px; color: var(--muted); }
+  .pipe-seg { position: relative; text-align: center; padding: 0 2px; min-width: 0; }
+  .pipe-seg i { display: block; height: 6px; margin: 2px 0; position: relative; }
+  .pipe-seg i::after { content: ''; position: absolute; right: -2px; top: 50%; transform: translateY(-50%); border: 7px solid transparent; border-left: 9px solid; border-right: 0; }
+  .pipe-seg.ok i { background: var(--good); height: 8px; } .pipe-seg.ok i::after { border-left-color: var(--good); }
+  .pipe-seg.meh i { background: var(--warn); height: 5px; } .pipe-seg.meh i::after { border-left-color: var(--warn); }
+  .pipe-seg.bad i { background: var(--bad); height: 3px; } .pipe-seg.bad i::after { border-left-color: var(--bad); }
+  .pipe-seg .flow { display: block; font-weight: 600; white-space: nowrap; }
+  .pipe-seg .sub { display: block; font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+  .pipe-seg .neck { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; background: var(--bad); border-radius: 8px; padding: 0 6px; white-space: nowrap; }
+  .advice { font-size: 13px; padding: 5px 8px; border-radius: 6px; margin-bottom: 4px; }
+  .advice.ok { background: rgba(63,122,58,.1); }
+  .advice.meh { background: rgba(196,122,26,.14); }
+  .advice.bad { background: rgba(163,41,28,.12); }
   .stocks { display: flex; flex-wrap: wrap; gap: 2px 14px; }
   .bar { display: inline-block; width: 44px; height: 7px; background: rgba(40,30,15,.15); border-radius: 4px; overflow: hidden; vertical-align: middle; }
   .bar i { display: block; height: 100%; }
@@ -109,6 +125,11 @@
   }
   @media (max-width: 520px) {
     header { padding: 8px 12px; }
+    .pipe { font-size: 10.5px; grid-template-columns: 46px minmax(56px, 1fr) minmax(70px, 1.2fr) minmax(56px, 1fr) minmax(58px, 1fr); }
+    .pipe-node { padding: 2px 3px; }
+    .pipe-node b { font-size: 10.5px; }
+    .pipe-node small, .pipe-seg .sub { font-size: 9.5px; }
+    .pipe-seg .flow { white-space: normal; line-height: 1.15; }
     main { padding: 8px 12px 20px; }
     .row .lbl { width: 84px; }
   }
@@ -124,7 +145,7 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v1</span>
+    <span id="ver">v2</span>
   </div>
 </header>
 

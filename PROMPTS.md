@@ -18,8 +18,20 @@
 - Folder: `C:\DEV\Repositories\GitHub\railhead`, local git only for now (GitHub later)
 - MVP core chosen: **B, supply + forces**: rail (gauge conversion, railheads), trucks, engineers and bombers; trains carry fuel and ammo **and** infantry, panzers and artillery; the generals fight. One campaign: Summer 1941. Not yet: weather, airlifts, partisans, later campaigns
 
+## 3. Is it derivative? I'm not sure I understand it
+
+- It's very good, but is it derivative of anything? And I'm not sure I understand it
+- Answer: an original design; it shares the genre and the real history (railheads, broad gauge) with games like Unity of Command, but there you move the armies and here you only run the supply chain
+- Offered four ways to make it easier to learn; Steve picked **B** and **C**
+
+## 4. Adviser line and supply pipe (B + C)
+
+- **B:** each sector card has an adviser line: the most urgent thing to fix, with numbers (e.g. "Trucks carry 600 of the 1,140 t a day… add 3 trucks, take 2 from Centre"), coloured green, amber or red
+- **C:** each sector card shows its pipe: Warsaw → trains → railhead depot → trucks → front. Each pipe is green, amber or red by how well it keeps up, and the narrowest one is labelled
+- Reserves grouped by type (e.g. "3 × Infantry division")
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
-| 1 | 2026-10-27 | about 120 min | Prompts 1–2: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check |
+| 1 | 2026-10-27 | about 150 min | Prompts 1–4: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card |
