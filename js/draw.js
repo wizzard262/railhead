@@ -344,36 +344,58 @@ const Draw = (() => {
 
   // Where the three badges go: back from their fronts on the German side if there's room,
   // otherwise anywhere nearby (over the front if need be), never on a station or another badge
+  let placeCache = { key: '', places: null };
   function badgePlaces(st) {
+    // Only worked out again when a front, railhead or the map size changes
+    const key = H + '|' + st.sectors.map(sec => Math.round(sec.front) + ':' + Math.round(Sim.railhead(st, sec).km)).join('|');
+    if (placeCache.key === key) return placeCache.places;
+    placeCache = { key, places: findPlaces(st) };
+    return placeCache.places;
+  }
+
+  // Score spots for each badge on its own (stations, flags, distance), keep the best few for each,
+  // then pick the best combination of three: no overlaps, no hidden tails, North above Centre above South
+  function findPlaces(st) {
     const stations = stationBoxes().concat(flagBoxes(st));
     const tries = [];
-    for (const dx of [-150, -125, -175, -100, -200, -75, 40, 70, 100]) {
-      for (const dy of [-62, -20, 20, -100, 60, -140, 100]) tries.push({ dx, dy });
+    for (let dx = -270; dx <= 150; dx += 30) {
+      for (let dy = -200; dy <= 200; dy += 20) tries.push({ dx, dy });
     }
-    const placed = [];
-    return st.sectors.map((sec, i) => {
+    const KEEP = 24;
+    const lists = st.sectors.map((sec, i) => {
       const p = along(sec.id, sec.front);
-      const want = [{ dx: -150, dy: -62 }, { dx: -165, dy: -6 }, { dx: -140, dy: 46 }][i];
-      let best = null, bestScore = Infinity;
+      const want = [{ dx: -150, dy: -100 }, { dx: -165, dy: -20 }, { dx: -140, dy: 60 }][i];
+      const opts = [];
       for (const t of tries) {
-        const box = { x: p.x + t.dx, y: p.y + t.dy, w: BADGE_W, h: BADGE_H };
+        const box = { x: p.x + t.dx, y: p.y + t.dy, w: BADGE_W, h: BADGE_H, front: p };
         if (box.x < 4 || box.y < 4 || box.x + box.w > W - 4 || box.y + box.h > H - 4) continue;
         let hit = 0;
-        for (const s of stations) hit += overlap(box, s);
-        for (const o of placed) {
-          hit += overlap({ x: o.x - 6, y: o.y - 6, w: o.w + 12, h: o.h + 12 }, box) * 10;
-          hit += tailHits(o, o.front, box) * 400;      // this box would hide that badge's tail
-          hit += tailHits(box, p, o) * 400;            // this badge's tail would run under that box
-        }
-        for (const s of stations) hit += tailHits(box, p, s) * 20;
-        const score = hit * 100 + Math.hypot(t.dx - want.dx, t.dy - want.dy) + (t.dx > 0 ? 120 : 0);
-        if (score < bestScore) { bestScore = score; best = box; }
+        for (const s of stations) hit += overlap(box, s) + tailHits(box, p, s) * 20;
+        box.score = hit * 100 + Math.hypot(t.dx - want.dx, (t.dy - want.dy) * 1.5) + (t.dx > 0 ? 120 : 0);
+        opts.push(box);
       }
-      best = best || { x: Math.max(4, Math.min(W - BADGE_W - 4, p.x - 150)), y: Math.max(4, Math.min(H - BADGE_H - 4, p.y)), w: BADGE_W, h: BADGE_H };
-      best.front = p;
-      placed.push(best);
-      return best;
+      opts.sort((a, b) => a.score - b.score);
+      if (!opts.length) opts.push({ x: Math.max(4, Math.min(W - BADGE_W - 4, p.x - 150)), y: Math.max(4, Math.min(H - BADGE_H - 4, p.y)), w: BADGE_W, h: BADGE_H, front: p, score: 0 });
+      return opts.slice(0, KEEP);
     });
+    // What two badges cost each other: overlapping, hiding a tail, or being in the wrong order (a above b wanted)
+    const pair = (a, b) => {
+      let hit = overlap({ x: a.x - 6, y: a.y - 6, w: a.w + 12, h: a.h + 12 }, b) * 10
+        + tailHits(a, a.front, b) * 400 + tailHits(b, b.front, a) * 400;
+      return hit * 100 + Math.max(0, a.y + 24 - b.y) * 60;
+    };
+    let best = null, bestScore = Infinity;
+    for (const n of lists[0]) {
+      for (const c of lists[1]) {
+        const nc = n.score + c.score + pair(n, c);
+        if (nc >= bestScore) continue;
+        for (const so of lists[2]) {
+          const total = nc + so.score + pair(c, so) + pair(n, so);
+          if (total < bestScore) { bestScore = total; best = [n, c, so]; }
+        }
+      }
+    }
+    return best;
   }
 
   function drawCounter(st, sec, place) {

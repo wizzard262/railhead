@@ -127,9 +127,15 @@
 - Towns are drawn in ink (German-held) or red (Soviet-held), with a church spire in the big ones; from about 10% damage a town shows flames, and smoke rises higher and darker as damage grows; a destroyed station is a tower of smoke
 - Railhead flags now stand just left of their town so the buildings stay clear
 
+## 20. Badges in order, a roomier report
+
+- Where possible keep the North badge at the top, Centre in the middle and South below
+- The three badges are now placed together: the best few spots for each are tried in every combination, and the winner has no overlaps or hidden tails and keeps North above Centre above South
+- Is Yesterday's report large enough for its text now? (Not on busy days.) The report now takes all the room the reserves don't need, its text is a little smaller, and the side column is a little wider: a seven-line day fits without scrolling
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 230 min | Prompts 6–19: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 245 min | Prompts 6–20: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
