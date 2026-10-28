@@ -338,21 +338,48 @@ const Draw = (() => {
     st.sectors.forEach((sec, i) => {
       const col = Sim.sectorDef(sec.id).colour;
       const rhKm = a.railheads[i], frontKm = a.fronts[i];
-      const trains = Math.min(6, Math.round(sec.trains));
+      const trains = Math.min(4, Math.round(sec.trains));
       for (let k = 0; k < trains; k++) {
         const f = (t + k / trains) % 1;
-        const p = along(sec.id, f * rhKm);
-        ctx.fillStyle = col; ctx.strokeStyle = '#2b2418'; ctx.lineWidth = 1;
-        ctx.fillRect(p.x - 6, p.y - 4, 12, 8); ctx.strokeRect(p.x - 6, p.y - 4, 12, 8);
+        const p = along(sec.id, f * rhKm), q = along(sec.id, f * rhKm + 5);
+        train(p.x, p.y, q.x < p.x, col);
       }
-      const trucks = Math.min(5, sec.trucks);
+      if (frontKm - rhKm < 2) return;
+      const trucks = Math.min(3, sec.trucks);
       for (let k = 0; k < trucks; k++) {
-        const f = (t * 2 + k / trucks) % 1;
-        const p = along(sec.id, rhKm + f * (frontKm - rhKm));
-        ctx.fillStyle = '#5a5a5a';
-        ctx.beginPath(); ctx.arc(p.x, p.y + 7, 3.5, 0, Math.PI * 2); ctx.fill();
+        const f = (t + k / trucks) % 1;
+        const p = along(sec.id, rhKm + f * (frontKm - rhKm)), q = along(sec.id, rhKm + f * (frontKm - rhKm) + 5);
+        truck(p.x, p.y, q.x < p.x);
       }
     });
+  }
+
+  // A small steam engine in the sector's colour, facing the way it travels
+  function train(x, y, left, col) {
+    ctx.save(); ctx.translate(x, y - 7); if (left) ctx.scale(-1, 1);
+    ctx.fillStyle = col; ctx.strokeStyle = '#2b2418'; ctx.lineWidth = 1;
+    ctx.fillRect(-10, -3, 13, 7); ctx.strokeRect(-10, -3, 13, 7);           // boiler
+    ctx.fillRect(-12, -7, 6, 11); ctx.strokeRect(-12, -7, 6, 11);           // cab
+    ctx.fillStyle = '#2b2418';
+    ctx.fillRect(-2, -8, 3, 5);                                              // chimney
+    ctx.beginPath(); ctx.moveTo(3, 4); ctx.lineTo(7, 4); ctx.lineTo(3, -1); ctx.fill();  // cowcatcher
+    for (const wx of [-8, -3, 1]) { ctx.beginPath(); ctx.arc(wx, 5, 2.2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = 'rgba(90,90,90,.45)';                                   // smoke
+    ctx.beginPath(); ctx.arc(-3, -12, 2.5, 0, Math.PI * 2); ctx.arc(-7, -15, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // A small lorry in field grey, facing the way it drives
+  function truck(x, y, left) {
+    ctx.save(); ctx.translate(x, y + 8); if (left) ctx.scale(-1, 1);
+    ctx.fillStyle = '#6b6650'; ctx.strokeStyle = '#2b2418'; ctx.lineWidth = 1;
+    ctx.fillRect(-9, -7, 11, 8); ctx.strokeRect(-9, -7, 11, 8);             // cargo box
+    ctx.fillStyle = '#8a5a2b';
+    ctx.fillRect(2, -5, 6, 6); ctx.strokeRect(2, -5, 6, 6);                 // cab
+    ctx.fillStyle = '#cfe0ea'; ctx.fillRect(5, -4, 2.5, 2.5);                // window
+    ctx.fillStyle = '#2b2418';
+    for (const wx of [-6, 5]) { ctx.beginPath(); ctx.arc(wx, 2, 2, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
   }
 
   // Which station is under the pointer (canvas pixels in, station id out)

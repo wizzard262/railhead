@@ -1,6 +1,7 @@
 // Railhead: start-up, the end-of-day animation and input
 
 window.Game = (() => {
+  const ANIM_MS = 3200;   // how long the trains and lorries roll at the end of each day
   let st, busy = false, hover = null;
   const canvas = document.getElementById('map');
   const G = window.Game = { forecast: {} };
@@ -17,19 +18,21 @@ window.Game = (() => {
     return st;
   }
 
-  // Trains and lorries roll for a moment, then the day is worked out
+  // Trains and lorries roll along for a few seconds, then the day is worked out.
+  // Pressing End day again (or Enter) skips the rest of the animation
+  let skip = false;
   function endDay() {
-    if (busy || st.won || st.lost) return;
-    busy = true;
-    document.getElementById('end-btn').disabled = true;
+    if (st.won || st.lost) return;
+    if (busy) { skip = true; return; }
+    busy = true; skip = false;
     const anim = {
       t: 0,
       railheads: st.sectors.map(s => Sim.railhead(st, s).km),
       fronts: st.sectors.map(s => s.front),
     };
-    const t0 = performance.now(), len = 900;
+    const t0 = performance.now();
     const step = now => {
-      anim.t = Math.min(1, (now - t0) / len);
+      anim.t = skip ? 1 : Math.min(1, (now - t0) / ANIM_MS);
       Draw.render(st, { hover, anim });
       if (anim.t < 1) return requestAnimationFrame(step);
       Sim.endDay(st);
