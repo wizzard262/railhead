@@ -253,6 +253,58 @@ const Draw = (() => {
     }
   }
 
+  // Unit pictures facing east, on a 24 x 16 grid: a soldier, a tank and a field gun.
+  // Each part is drawn in order in the dark body colour or the light paper colour
+  const UNIT_ART = {
+    inf: [
+      ['body', 'M15.3 3.1L16.2 3.7L9.7 13.7L8.8 13.1Z'],
+      ['body', 'M10 3.5C10.1 1.6 11.1 0.6 12.5 0.6S14.9 1.6 15 3.5Z'],
+      ['body', 'M11.1 4.4a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0Z'],
+      ['body', 'M10.4 6H14.6L14.1 10.4H10.9Z'],
+      ['body', 'M10.9 10.2H12.3L11.8 15.6H10.3Z'],
+      ['body', 'M12.7 10.2H14.1L14.8 15.6H13.3Z'],
+    ],
+    pz: [
+      ['body', 'M3.5 10H20.5A2.5 2.5 0 0 1 20.5 15H3.5A2.5 2.5 0 0 1 3.5 10Z'],
+      ['light', 'M3.7 12.5a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0ZM7.7 12.5a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0ZM11.7 12.5a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0ZM15.7 12.5a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0Z'],
+      ['body', 'M2.5 9.6L4.6 6.8H19.6L22 9.6Z'],
+      ['body', 'M8 6.8V4.6Q8 3.6 9 3.6H14.2Q15 3.6 15.4 4.6L16 6.8Z'],
+      ['body', 'M15.2 4.5H23.6V5.7H15.4Z'],
+    ],
+    art: [
+      ['body', 'M9.6 10.6L1 15L1.5 15.9L10.4 12Z'],
+      ['body', 'M8.6 8.3L22.6 2.9L23.1 4.2L9.3 10.1Z'],
+      ['body', 'M11.2 5.6L13.6 4.6L14.5 9.2L11.8 9.8Z'],
+      ['body', 'M5.8 11.5a4.2 4.2 0 1 0 8.4 0a4.2 4.2 0 1 0-8.4 0Z'],
+      ['light', 'M7.2 11.5a2.8 2.8 0 1 0 5.6 0a2.8 2.8 0 1 0-5.6 0Z'],
+      ['body', 'M9 11.5a1 1 0 1 0 2 0a1 1 0 1 0-2 0Z'],
+    ],
+  };
+  const UNIT_COLOURS = { body: '#4b5638', light: '#e6dcc0' };
+  const paths = {};
+
+  function unitPicture(type, x, y, w = 26, h = 17) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(w / 24, h / 16);
+    for (const [part, d] of UNIT_ART[type]) {
+      ctx.fillStyle = UNIT_COLOURS[part];
+      ctx.fill(paths[d] || (paths[d] = new Path2D(d)));
+    }
+    ctx.restore();
+  }
+
+  // Reserves waiting at Warsaw: one picture per unit, a row per type, overlapping a little when there are many
+  function drawReserves(st) {
+    const box = reserveBox();
+    let row = 0;
+    for (const type of UNIT_ORDER) {
+      const n = st.reserves.filter(u => u.type === type).length;
+      if (!n) continue;
+      const step = n > 1 ? Math.min(20, (box.w - 26) / (n - 1)) : 0;
+      for (let k = 0; k < n; k++) unitPicture(type, box.x + k * step, box.y + 4 + row * ROW_H);
+      row++;
+    }
+  }
+
   // A railhead flag in the sector's colour
   function drawRailhead(st, sec, i) {
     const rh = Sim.railhead(st, sec);
@@ -315,9 +367,16 @@ const Draw = (() => {
     });
   }
 
-  // Everything a badge must not cover: each station and its name
+  // The stack of reserve units beside Warsaw, and the room it may take
+  const ROW_H = 20;
+  function reserveBox() {
+    const p = P.warsaw;
+    return { x: p.x - 60, y: p.y + 8, w: 100, h: 6 + ROW_H * UNIT_ORDER.length };
+  }
+
+  // Everything a badge must not cover: each station and its name, and the reserves
   function stationBoxes() {
-    const boxes = [];
+    const boxes = [reserveBox()];
     for (const id in NODES) {
       const p = P[id], big = NODES[id].cap >= 9;
       ctx.font = (big ? 'bold 13px' : '12px') + ' Georgia, serif';
@@ -471,6 +530,7 @@ const Draw = (() => {
       ctx.beginPath(); ctx.ellipse(p.x + 10, p.y, 26, 18, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
     }
     for (const id in NODES) drawStation(st, id, opts.hover === id);
+    drawReserves(st);
     for (const id of st.events.raids || []) burst({ x: P[id].x + 14, y: P[id].y - 14 }, 'rgba(200,60,20,.75)');
     st.sectors.forEach((s, i) => drawRailhead(st, s, i));
     const places = badgePlaces(st);
@@ -514,8 +574,10 @@ const Draw = (() => {
     const r = canvas.getBoundingClientRect();
     const x = (clientX - r.left) / r.width * W, y = (clientY - r.top) / r.height * H;
     for (const id in P) if (Math.hypot(P[id].x - x, P[id].y - y) < 16) return id;
+    const b = reserveBox();
+    if (x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) return 'warsaw';
     return null;
   }
 
-  return { init, resize, render, hit, along, P, W, get H() { return H; } };
+  return { init, resize, render, hit, along, P, W, UNIT_ART, UNIT_COLOURS, get H() { return H; } };
 })();

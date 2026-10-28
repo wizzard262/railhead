@@ -25,9 +25,16 @@ const UI = (() => {
     }
   }
 
+  // The same unit pictures as on the map: a soldier, a tank and a field gun
+  function unitIcon(type) {
+    const parts = Draw.UNIT_ART[type].map(([part, d]) => `<path d="${d}" fill="${Draw.UNIT_COLOURS[part]}"/>`).join('');
+    return `<svg class="unit-icon" viewBox="0 0 24 16" width="21" height="14" aria-hidden="true">${parts}</svg>`;
+  }
+
   function init(state, changed) {
     st = state; onChange = changed;
     buildSectors();
+    $('#unit-legend').innerHTML = UNIT_ORDER.map(u => `${unitIcon(u)} ${UNIT_TYPES[u].short}`).join(' · ') + ': reserves wait beside Warsaw';
     $('#help-btn').onclick = $('#help-btn2').onclick = () => show('#help');
     $('#new-btn').onclick = () => { if (confirm('Start a new game?')) window.Game.restart(); };
     for (const b of document.querySelectorAll('[data-close]')) b.onclick = () => hide(b.closest('.modal'));
@@ -319,12 +326,12 @@ const UI = (() => {
       const rec = matchMix(sec);
       c.mix.update(rec);
       c.mixNote.innerHTML = sec.fuelMix === rec ? '<span>matches what it uses</span>' : '<span><span class="warn">green line</span> matches what it uses</span>';
-      const forces = UNIT_ORDER.map(u => `<span title="${UNIT_TYPES[u].name}">${UNIT_TYPES[u].short} <b>${sec.forces[u]}</b></span>`).join(' · ');
+      const forces = UNIT_ORDER.map(u => `<span class="force" title="${UNIT_TYPES[u].name}">${unitIcon(u)} ${UNIT_TYPES[u].short}: <b>${sec.forces[u]}</b></span>`).join('');
       const coming = [
         ...st.queue.filter(q => q.sector === sec.id).map(q => `${UNIT_TYPES[q.type].short} loading`),
         ...st.marching.filter(m => m.sector === sec.id).map(m => `${UNIT_TYPES[m.type].short} in ${Math.max(1, m.day - st.day + 1)} d`),
       ];
-      c.forces.innerHTML = forces + (coming.length ? `<br>coming: ${coming.join(', ')}` : '');
+      c.forces.innerHTML = forces + (coming.length ? `<span class="coming">coming: ${coming.join(', ')}</span>` : '');
     }
 
     // Reserves at Warsaw
@@ -337,7 +344,7 @@ const UI = (() => {
       if (!units.length) continue;
       const T = UNIT_TYPES[type];
       const row = el('div', 'unit');
-      row.append(el('div', '', `<b>${units.length} × ${T.name}</b> <span class="muted cost">${T.trains} 🚂 · ${T.need.advance.fuel + T.need.advance.ammo} t/d</span>`));
+      row.append(el('div', '', `${unitIcon(type)} <b>${units.length} × ${T.name}</b> <span class="muted cost">${T.trains} 🚂 · ${T.need.advance.fuel + T.need.advance.ammo} t/d</span>`));
       const btns = el('div', 'send');
       btns.title = `Each takes ${T.trains} trains to send, then uses ${T.need.advance.fuel + T.need.advance.ammo} t a day`;
       for (const sec of st.sectors) {

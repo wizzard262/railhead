@@ -13,7 +13,7 @@
     --good: #3f7a3a; --warn: #b4651a; --bad: #a3291c; --accent: #2f4f6f;
     --fuel: #c47a1a; --ammo: #5a5a5a;
     /* The board's columns: sector, supply line, trains, trucks, engineers, mix, bombers */
-    --cols: 150px minmax(400px, 2.4fr) minmax(108px, .5fr) minmax(108px, .55fr) minmax(212px, .9fr) minmax(222px, .9fr) minmax(108px, .5fr);
+    --cols: 172px minmax(400px, 2.4fr) minmax(108px, .5fr) minmax(108px, .55fr) minmax(212px, .9fr) minmax(222px, .9fr) minmax(108px, .5fr);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -87,7 +87,9 @@
   .free { display: inline-block; margin-left: 4px; padding: 0 7px; border-radius: 9px; background: rgba(40,30,15,.08); font-weight: 600; }
   .free.have { background: var(--good); color: #fff; }
   .card { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--sec); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; row-gap: 3px; }
-  .c-name { grid-row: span 2; display: flex; flex-direction: column; gap: 3px; }
+  .c-name { grid-row: span 2; display: grid; grid-template-columns: auto auto; justify-content: space-between; align-content: start; gap: 3px 6px; }
+  .c-name > :not(.forces) { grid-column: 1; }
+  .c-name .forces { grid-column: 2; grid-row: 1 / span 3; padding-top: 3px; }
   .c-name h3 { margin: 0; font: 17px "Special Elite", monospace; color: var(--sec); }
   .status { font-size: 11.5px; padding: 0 7px; border-radius: 10px; align-self: flex-start; }
   .status.ok { background: rgba(63,122,58,.15); color: var(--good); }
@@ -95,6 +97,9 @@
   .status.bad { background: rgba(163,41,28,.15); color: var(--bad); font-weight: 600; }
   .forces { font-size: 12px; color: var(--muted); line-height: 1.3; }
   .forces b { color: var(--ink); }
+  .force { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .coming { display: block; font-size: 11px; }
+  .unit-icon { flex: none; vertical-align: -2px; }
   .c-advice { grid-column: 2 / -1; margin-left: 8px; font-size: 13px; padding: 3px 8px; border-radius: 6px; }
   .c-advice.ok { background: rgba(63,122,58,.1); }
   .c-advice.meh { background: rgba(196,122,26,.14); }
@@ -158,7 +163,8 @@
     #side .box { flex: 1 1 280px; max-height: 260px; }
     .brow { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 6px; }
     .brow .c-name, .brow .c-pipe, .brow .c-advice { grid-column: 1 / -1; grid-row: auto; }
-    .c-name { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+    .c-name { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+    .c-name .forces { display: flex; flex-wrap: wrap; gap: 2px 10px; padding-top: 0; }
     .brow.head { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 0 4px; }
     .brow.head > span:empty, .brow.head .h-pipe, .brow.head .h-mix { display: none; }
     .cell[data-label]::before { content: attr(data-label); font-size: 12px; color: var(--muted); }
@@ -186,7 +192,7 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v18</span>
+    <span id="ver">v19</span>
   </div>
 </header>
 
@@ -206,6 +212,7 @@
       <span><i class="lg-broad"></i>Russian broad gauge</span>
       <span><i class="lg-front"></i>Front line</span>
       <span>⚑ Railhead · ■ big station · bar = condition · <b style="color:#a3291c">?</b> reported Soviet build-up · hover a station for its stocks</span>
+      <span id="unit-legend"></span>
     </div>
   </div>
   <div id="side">
@@ -264,10 +271,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=18"></script>
-<script src="js/sim.js?v=18"></script>
-<script src="js/draw.js?v=18"></script>
-<script src="js/ui.js?v=18"></script>
-<script src="js/main.js?v=18"></script>
+<script src="js/data.js?v=19"></script>
+<script src="js/sim.js?v=19"></script>
+<script src="js/draw.js?v=19"></script>
+<script src="js/ui.js?v=19"></script>
+<script src="js/main.js?v=19"></script>
 </body>
 </html>

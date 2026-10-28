@@ -133,9 +133,17 @@
 - The three badges are now placed together: the best few spots for each are tried in every combination, and the winner has no overlaps or hidden tails and keeps North above Centre above South
 - Is Yesterday's report large enough for its text now? (Not on busy days.) The report now takes all the room the reserves don't need, its text is a little smaller, and the side column is a little wider: a seven-line day fits without scrolling
 
+## 21. Reserves you can see
+
+- Show icons for the reserves stacked up next to Warsaw, one for each unit, so 2 infantry show 2 icons
+- In the first box of each sector row, list the forces with an icon: Inf: 4, Pz: 1, Art: 7
+- The icons should be pictures: a soldier, a tank and an artillery gun
+- Reserves now stand beside Warsaw as little pictures (a soldier, a tank, a field gun), one per unit and a row per type, overlapping a little when there are many; hovering them shows Warsaw's tooltip. The same pictures head the force list in each sector row, the reserves box and the map legend
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
 | 2 | 2026-10-28 | about 245 min | Prompts 6–20: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |
