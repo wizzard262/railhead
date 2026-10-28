@@ -1,13 +1,23 @@
-// Railhead: the staff map, drawn on a wide 1000 x 425 canvas
+// Railhead: the staff map. It is 1000 units wide and as tall as its box allows,
+// with the stations spread to fill it edge to edge
 
 const Draw = (() => {
-  const W = 1000, H = 425;
-  let canvas, ctx, paper, scale = 1;
+  const W = 1000;
+  let H = 425;
+  let canvas, ctx, paper, paperH = 0, scale = 1;
+
+  // The stations' corners (Warsaw west, Roslavl east, Polotsk north, Brest south) and the room left round them
+  const LON0 = 21.0, LON1 = 32.86, LAT0 = 52.10, LAT1 = 55.49;
+  const M = { left: 70, right: 80, top: 40, bottom: 48 };
 
   // Map position from longitude and latitude
-  const px = (lon, lat) => ({ x: (lon - 20) * 70 + 40, y: (55.9 - lat) * 100 + 22 });
+  const px = (lon, lat) => ({
+    x: M.left + (lon - LON0) / (LON1 - LON0) * (W - M.left - M.right),
+    y: M.top + (LAT1 - lat) / (LAT1 - LAT0) * (H - M.top - M.bottom),
+  });
   const P = {};
-  for (const id in NODES) P[id] = px(NODES[id].lon, NODES[id].lat);
+  function project() { for (const id in NODES) P[id] = px(NODES[id].lon, NODES[id].lat); }
+  project();
 
   // Point a given distance (km from Warsaw) along a sector's line
   function along(sectorId, km) {
@@ -25,21 +35,27 @@ const Draw = (() => {
   function init(el) {
     canvas = el;
     ctx = canvas.getContext('2d');
-    paper = makePaper();
+    paperH = 0;
     resize();
   }
 
-  // Fit the map inside its box, keeping its shape (on narrow screens it just takes the full width)
+  // Fill the whole box (on narrow screens, or with no box, keep the 1000 x 425 shape)
   function resize() {
-    const box = canvas.closest('.mapbox') || canvas.parentElement;
+    const box = canvas.closest('.mapbox');
     const dpr = window.devicePixelRatio || 1;
-    let w = box.clientWidth;
-    if (!window.matchMedia('(max-width: 1250px)').matches && box.clientHeight > 100) w = Math.min(w, box.clientHeight * W / H);
+    let w, h;
+    if (box && !window.matchMedia('(max-width: 1250px)').matches && box.clientHeight > 100) {
+      w = box.clientWidth; h = box.clientHeight;
+    } else {
+      w = box ? box.clientWidth : canvas.getBoundingClientRect().width; h = w * 425 / W;
+    }
+    H = Math.round(W * h / w);
     canvas.style.width = w + 'px';
-    canvas.style.height = (w * H / W) + 'px';
+    canvas.style.height = h + 'px';
     canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(w * H / W * dpr);
+    canvas.height = Math.round(h * dpr);
     scale = canvas.width / W;
+    if (H !== paperH) { project(); paper = makePaper(); paperH = H; }
   }
 
   // Seeded scatter so the paper, forests and marsh look the same every time
@@ -357,5 +373,5 @@ const Draw = (() => {
     return null;
   }
 
-  return { init, resize, render, hit, along, P, W, H };
+  return { init, resize, render, hit, along, P, W, get H() { return H; } };
 })();

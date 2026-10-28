@@ -207,7 +207,12 @@ const UI = (() => {
       if (f.daysA < 2.5) what.push('get <b>ammo</b> to the front');
       return ['bad', `🔍 Recon says the Soviets are massing here: ${what.join(', and ')}.`];
     }
-    if (sec.posture === 'hold') return ['meh', '⏸️ Holding: stocks are building up. Press <b>Advance</b> once the front has about 3 days of fuel and ammo.'];
+    if (sec.posture === 'hold') {
+      const ready = Math.min(f.daysF, f.daysA) >= 2;
+      return [ready ? 'ok' : 'meh', ready
+        ? '▶️ The front has 2+ days of fuel and ammo: press <b>Advance</b>. A well-stocked front pushes 30% faster.'
+        : `⏸️ Holding: dug in (defence +${Math.round((HOLD_DEFENCE - 1) * 100)}%) while stocks build up. Advance again at about 2 days of fuel and ammo.`];
+    }
     const choke = () => {
       const c = chokeStation(sec);
       if (!c) return '';
@@ -219,6 +224,11 @@ const UI = (() => {
     };
     if (f.lineShort && f.trainRatio < 1) return ['bad', `🚧 The line only takes <b>${f.lineTakes.toFixed(1)}</b> trains a day${choke()}. Set engineers to <b>Station 🚉</b> so more get through.`];
     const depotDays = Math.min(f.depotDaysF, f.depotDaysA);
+    // Advancing on a trickle wastes it: better to stop, stock up and go again
+    const frontDays = Math.min(f.daysF, f.daysA);
+    if (frontDays < 0.6 && Math.min(f.truckRatio, f.trainRatio) < SHORT_SUPPLY + 0.3) {
+      return ['bad', `⏸️ The front is nearly empty and supply can't keep up, so advancing wastes what arrives. <b>Hold</b> for a few days to stock up, then Advance.`];
+    }
     if (f.truckRatio < 1 && (f.truckRatio <= f.trainRatio || depotDays > 2)) {
       const more = Math.ceil((f.need - f.truckCap) / Math.max(1, f.perTruck));
       return [tone(f.truckRatio), `🚚 Trucks carry ${t(f.truckCap)} of the ${t(f.need)} t a day the front uses, over ${t(f.gap)} km. Add <b>${more}</b> truck${more > 1 ? 's' : ''}${source(sec, 'trucks', more)}, or more <b>engineers</b> to bring the railhead closer.`];

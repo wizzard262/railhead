@@ -227,6 +227,7 @@ const Sim = (() => {
       + gap(st, sec) / 150
       + Math.max(0, ahead) / 120
       - power(sec, 'defend') / 15
+      - (sec.posture === 'hold' ? 1 : 0)
       + st.rand() * 0.6;
   }
 
@@ -333,7 +334,8 @@ const Sim = (() => {
 
     // 5. Trucks: railhead depot to the front, burning fuel on the way
     for (const sec of st.sectors) {
-      const n = needs(sec);
+      // Trucks keep the front topped up to 3 days of advancing, even while it holds
+      const n = needs(sec, 'advance');
       const d = Math.max(20, gap(st, sec));
       const burn = d * TRUCK_FUEL;
       let wf = Math.max(0, n.fuel * 3 - sec.stock.fuel);
@@ -364,7 +366,8 @@ const Sim = (() => {
         const ammoNeed = S * 8;
         const used = Math.min(sec.stock.ammo, ammoNeed);
         sec.stock.ammo -= used;
-        const def = power(sec, 'defend') * 10 * (used / ammoNeed);
+        const dug = sec.posture === 'hold' ? HOLD_DEFENCE : 1;
+        const def = power(sec, 'defend') * 10 * (used / ammoNeed) * dug;
         ev.attacks.push(sec.id);
         if (def >= S) {
           slowed = true;
@@ -402,9 +405,12 @@ const Sim = (() => {
       const r = clamp(Math.min(rF, rA), 0, 1);
       sec.stock.fuel -= n.fuel * r;
       sec.stock.ammo -= n.ammo * r;
-      // Speed is the slowest of: how fast the units can move, how hard the Soviets resist, and supply
+      // Speed is the slowest of: how fast the units can move, how hard the Soviets resist, and supply.
+      // Short supply is wasted (units burn it but barely move); a well-stocked front pushes harder
       const lim = limits(sec);
-      let km = Math.min(lim.mobility, lim.combat) * r * (0.85 + R() * 0.3) * (slowed ? 0.5 : 1);
+      const push = r <= SHORT_SUPPLY ? 0 : (r - SHORT_SUPPLY) / (1 - SHORT_SUPPLY);
+      const stocked = r >= 1 && sec.stock.fuel >= n.fuel * 2 && sec.stock.ammo >= n.ammo * 2 ? WELL_SUPPLIED : 1;
+      let km = Math.min(lim.mobility, lim.combat) * push * stocked * (0.85 + R() * 0.3) * (slowed ? 0.5 : 1);
       sec.limit = r < 0.98 ? 'supply' : lim.combat < lim.mobility ? 'resistance' : 'mobility';
       km = Math.min(km, end - sec.front);
       sec.front += km;
