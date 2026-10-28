@@ -147,10 +147,14 @@
 - The rows fit smaller laptop screens without scrolling sideways (a more compact supply line below 1500 px wide, stacked rows below 1300 px)
 - "coming: Inf loading": the unit pictures now show there too, and in the loading list under the reserves
 
+## 23. Station health bar
+
+- Show the station's % in its box in each row's supply line as a health bar: green, amber or red, the same as the bar under the town on the map
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 245 min | Prompts 6–20: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 270 min | Prompts 6–23: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |

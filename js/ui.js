@@ -288,13 +288,21 @@ const UI = (() => {
     return `
       <div class="pipe-node"><b>Warsaw</b><small>base</small></div>
       ${seg('train', f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineShort ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`, true)}
-      <div class="pipe-node" title="${past ? `Trains run on ${t(rh.laid)} km past ${NODES[rh.node].name}; the depot is at the end of the track` : `The depot is at ${NODES[rh.node].name}`}"><b>${NODES[rh.node].name}</b><small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
+      <div class="pipe-node" title="${past ? `Trains run on ${t(rh.laid)} km past ${NODES[rh.node].name}; the depot is at the end of the track` : `The depot is at ${NODES[rh.node].name}`}"><b>${NODES[rh.node].name}</b>${health(rh.node)}<small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
       <div class="pipe-pair" title="Train to the end of the track, then trucks to the front">
         ${past ? seg('train extend', f.trainRatio, `🚂 +${t(rh.laid)} km`, 'to track end', false) : ''}
         ${seg('truck', f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`, true)}
       </div>
       <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽', 'fuel')}</small><small>${days(f.daysA, '💥', 'ammo')}</small><small>uses ${t(f.need)}/d</small></div>
       ${nextStation(sec)}`;
+  }
+
+  // A station's health bar: green, amber or red like the bars under the towns on the map
+  function health(id) {
+    if (id === 'warsaw') return '';
+    const c = Math.round(st.nodes[id].cond);
+    const col = c > 66 ? 'var(--good)' : c > 33 ? 'var(--fuel)' : 'var(--bad)';
+    return `<small class="dayrow" title="Station condition: trains it can take scale with this"><span class="bar"><i style="width:${c}%;background:${col}"></i></span><span class="${c <= 33 ? 'warn' : ''}">${c}%</span></small>`;
   }
 
   // How far the front still has to go to the next station on its line
