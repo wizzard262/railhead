@@ -2,7 +2,7 @@
 
 Summer 1941. You run supply for Army Group Centre. The generals fight; you decide what reaches them.
 
-Take Vitebsk, Smolensk and Roslavl by 10 August by keeping three sectors fed with fuel and ammo:
+Take Vitebsk, Smolensk and Roslavl by 8 August by keeping three sectors fed with fuel and ammo:
 
 - **Trains** run only on converted track; Russian broad gauge stops them at the railhead
 - **Trucks** carry the gap from railhead to front, carrying less and burning more as it grows

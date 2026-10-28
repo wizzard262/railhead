@@ -164,7 +164,7 @@ const UI = (() => {
 
   // What flows through each part of a sector's pipe, in tons a day
   function flows(sec) {
-    const n = Sim.needs(sec);
+    const n = Sim.needs(sec), adv = Sim.needs(sec, 'advance');
     const need = n.fuel + n.ammo;
     const gap = Sim.gap(st, sec);
     const d = Math.max(20, gap);
@@ -180,7 +180,8 @@ const UI = (() => {
       lineShort: f.trains + 0.05 < sec.trains + troopFor(sec.id), lineTakes: f.trains,
       trainRatio: trainTons / Math.max(1, trainNeed),
       truckRatio: truckCap / Math.max(1, need),
-      daysF: sec.stock.fuel / Math.max(1, n.fuel), daysA: sec.stock.ammo / Math.max(1, n.ammo),
+      // Days in hand are always days of advancing, so they mean the same on Hold
+      daysF: sec.stock.fuel / Math.max(1, adv.fuel), daysA: sec.stock.ammo / Math.max(1, adv.ammo),
       depotDaysF: sec.depot.fuel / Math.max(1, n.fuel + burn + bomberFuel),
       depotDaysA: sec.depot.ammo / Math.max(1, n.ammo),
     };
@@ -235,10 +236,11 @@ const UI = (() => {
       return ['bad', `🔍 Recon says the Soviets are massing here: ${what.join(', and ')}.`];
     }
     if (sec.posture === 'hold') {
-      const ready = Math.min(f.daysF, f.daysA) >= 2;
+      const inHand = Math.min(f.daysF, f.daysA);
+      const ready = inHand >= 4;
       return [ready ? 'ok' : 'meh', ready
-        ? '▶️ The front has 2+ days of fuel and ammo: press <b>Advance</b>. A well-stocked front pushes 30% faster.'
-        : `⏸️ Holding: dug in (defence +${Math.round((HOLD_DEFENCE - 1) * 100)}%) while stocks build up. Advance again at about 2 days of fuel and ammo.`];
+        ? `▶️ ${inHand.toFixed(1)} days in hand: press <b>Advance</b> for a push about ${Math.round(WELL_SUPPLIED * 4 * 100)}% faster than usual.`
+        : `⏸️ Holding: dug in (defence +${Math.round((HOLD_DEFENCE - 1) * 100)}%), engineers working ${HOLD_ENGINEERS}× as fast, guns softening the Soviets, and trucks stocking the front up to ${HOLD_STOCK_DAYS} days. Advance at about 4 days in hand.`];
     }
     const choke = () => {
       const c = chokeStation(sec);

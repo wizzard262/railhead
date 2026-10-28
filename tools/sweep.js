@@ -22,6 +22,17 @@ const strategies = {
   },
 };
 strategies.pulseRecon = st => { strategies.pulse(st); strategies.recon(st); };
+// Hold whenever the front is nearly out, and only go again with 4 days in hand for the big push
+strategies.build4 = st => {
+  for (const s of st.sectors) {
+    if (s.front >= Sim.LINES[s.id].at(-1)) { s.posture = 'hold'; continue; }
+    const n = Sim.needs(s, 'advance');
+    const days = Math.min(s.stock.fuel / n.fuel, s.stock.ammo / n.ammo);
+    if (s.posture === 'advance' && days < 0.8) s.posture = 'hold';
+    else if (s.posture === 'hold' && days >= 4) s.posture = 'advance';
+  }
+};
+strategies.build4Recon = st => { strategies.build4(st); strategies.recon(st); };
 
 for (const arg of process.argv.slice(2).length ? process.argv.slice(2) : ['']) {
   let data = read('data.js');

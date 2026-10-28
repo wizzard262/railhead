@@ -338,8 +338,9 @@ const Sim = (() => {
       const n = needs(sec, 'advance');
       const d = Math.max(20, gap(st, sec));
       const burn = d * TRUCK_FUEL;
-      let wf = Math.max(0, n.fuel * 3 - sec.stock.fuel);
-      let wa = Math.max(0, n.ammo * 3 - sec.stock.ammo);
+      const keep = sec.posture === 'hold' ? HOLD_STOCK_DAYS : STOCK_DAYS;
+      let wf = Math.max(0, n.fuel * keep - sec.stock.fuel);
+      let wa = Math.max(0, n.ammo * keep - sec.stock.ammo);
       if (attack && attack.sector === sec.id) wa += attack.strength * 4;
       wf = Math.min(wf, sec.depot.fuel / (1 + burn));
       wa = Math.min(wa, sec.depot.ammo);
@@ -387,6 +388,8 @@ const Sim = (() => {
       }
       const n = needs(sec);
       if (sec.posture === 'hold' || halted) {
+        // Holding with ammo to spare: the guns soften up the Soviets for the next push
+        if (!halted && sec.stock.ammo >= n.ammo * 2) sec.res = Math.max(8, sec.res - HOLD_SOFTEN * (1 + 0.5 * sec.forces.art));
         sec.stock.fuel = Math.max(0, sec.stock.fuel - n.fuel);
         sec.stock.ammo = Math.max(0, sec.stock.ammo - n.ammo);
         sec.lastAdvance = 0;
@@ -409,7 +412,8 @@ const Sim = (() => {
       // Short supply is wasted (units burn it but barely move); a well-stocked front pushes harder
       const lim = limits(sec);
       const push = r <= SHORT_SUPPLY ? 0 : (r - SHORT_SUPPLY) / (1 - SHORT_SUPPLY);
-      const stocked = r >= 1 && sec.stock.fuel >= n.fuel * 2 && sec.stock.ammo >= n.ammo * 2 ? WELL_SUPPLIED : 1;
+      const inHand = Math.min(sec.stock.fuel / Math.max(1, n.fuel), sec.stock.ammo / Math.max(1, n.ammo));
+      const stocked = r >= 1 ? 1 + WELL_SUPPLIED * Math.min(4, inHand) : 1;
       let km = Math.min(lim.mobility, lim.combat) * push * stocked * (0.85 + R() * 0.3) * (slowed ? 0.5 : 1);
       sec.limit = r < 0.98 ? 'supply' : lim.combat < lim.mobility ? 'resistance' : 'mobility';
       km = Math.min(km, end - sec.front);
@@ -459,7 +463,7 @@ const Sim = (() => {
 
     // 8. Engineers: repair badly hit stations, convert track, then tidy up
     for (const sec of st.sectors) {
-      let b = sec.engineers;
+      let b = sec.engineers * (sec.posture === 'hold' ? HOLD_ENGINEERS : 1);
       const line = sectorDef(sec.id).line, kms = LINES[sec.id];
       const rh = railheadIndex(st, sec);
       const top = Math.min(rh + 1, line.length - 1);

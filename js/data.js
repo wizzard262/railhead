@@ -1,7 +1,7 @@
 // Railhead: the map and the world numbers for Summer 1941
 
 const START_DATE = new Date(1941, 5, 22);   // day 1 = Sunday 22 June 1941
-const LAST_DAY = 50;                         // 10 August 1941
+const LAST_DAY = 48;                         // 8 August 1941
 
 // What you have each day
 const TRAINS_PER_DAY = 14;      // trains leaving Warsaw
@@ -93,8 +93,13 @@ const BASE_SPEED = 16;      // km a day the slowest force can march; units add t
 const MAX_SPEED = 32;
 const COMBAT_SPEED = 70;    // km a day = COMBAT_SPEED x attack power / Soviet resistance
 const SHORT_SUPPLY = 0.4;     // below this share of a day's needs a sector can't advance at all; above it, speed climbs to full
-const WELL_SUPPLIED = 1.3;  // speed bonus when the front still has 2 days in hand after today
+const WELL_SUPPLIED = 0.08; // speed bonus for each day of fuel and ammo still in hand after today (up to 4 days: +32%)
 const HOLD_DEFENCE = 1.6;   // a sector on Hold is dug in: its defence counts this much more
+// What a sector on Hold gets in return for the days it doesn't advance
+const STOCK_DAYS = 3;       // days of advancing the trucks keep at the front while it advances
+const HOLD_STOCK_DAYS = 5;  // ... and while it holds, so it can build up for a big push
+const HOLD_ENGINEERS = 1.5;   // its engineers repair and lay track this many times as fast (no front to keep up with)
+const HOLD_SOFTEN = 1;     // its guns wear the Soviets down: resistance falls this much a day (more with artillery)
 
 // Units arriving at Warsaw for you to send east
 const REINFORCEMENTS = [
