@@ -125,6 +125,8 @@
   .pipe-seg i { display: block; height: 0; border-top: 4px dashed var(--leg); margin: 5px 0 3px; position: relative; }
   .pipe-seg i::after { content: ''; position: absolute; right: -3px; top: -2px; transform: translateY(-50%); border: 7px solid transparent; border-left: 10px solid var(--leg); border-right: 0; }
   .pipe-seg.extend i::after { display: none; }
+  /* End of the track, where the trucks take over: -----|----- */
+  .pipe-seg.extend + .pipe-seg.truck i::before { content: ''; position: absolute; left: -4px; top: -10px; width: 3px; height: 16px; background: var(--ink); border-radius: 1px; }
   .pipe-seg.ok .flow { color: var(--good); }
   .pipe-seg.meh .flow { color: var(--warn); }
   .pipe-seg.bad .flow { color: var(--bad); }
@@ -179,7 +181,7 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v10</span>
+    <span id="ver">v11</span>
   </div>
 </header>
 
@@ -257,10 +259,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=10"></script>
-<script src="js/sim.js?v=10"></script>
-<script src="js/draw.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
-<script src="js/main.js?v=10"></script>
+<script src="js/data.js?v=11"></script>
+<script src="js/sim.js?v=11"></script>
+<script src="js/draw.js?v=11"></script>
+<script src="js/ui.js?v=11"></script>
+<script src="js/main.js?v=11"></script>
 </body>
 </html>

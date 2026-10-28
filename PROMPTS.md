@@ -88,9 +88,15 @@
 - The train mix moved one place left (bombers now on the right) and down, in line with the engineers' focus buttons
 - Warsaw higher and the other stations spread wider top to bottom; smaller Pripet marshes; real geography doesn't matter. Stations now sit on a hand-made board layout, with the rivers redrawn to pass the right towns, and the map's subtitle dropped so it doesn't clash with the border
 
+## 13. End-of-track mark
+
+- Don't push yet: more changes coming
+- Where the track meets the road, put a mark like this: -----|-------
+- The supply line now has a short upright bar where the dashed black train leg ends and the dashed brown truck leg starts
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 170 min | Prompts 6–12: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 175 min | Prompts 6–13: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
