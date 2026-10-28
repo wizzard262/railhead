@@ -100,9 +100,14 @@
 - They now roll for about 3 seconds (was under 1): small steam engines in each sector's colour, with smoke, from Warsaw to the end of the track, then field-grey lorries to the front; each faces the way it travels
 - Pressing End day or Enter again skips the rest of the animation
 
+## 15. Same icons, all facing right
+
+- Make the trains and trucks all face right, and use the same icons and colours as the rest of the game when they move along the track and road
+- The animation now uses the 🚂 and 🚚 from the sector rows, mirrored so they face right (east, towards the front)
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 185 min | Prompts 6–14: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 190 min | Prompts 6–15: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
