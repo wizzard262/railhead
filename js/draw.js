@@ -277,7 +277,8 @@ const Draw = (() => {
     ctx.strokeStyle = '#f4ead2'; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = col; ctx.font = 'bold 10px system-ui, sans-serif';
     ctx.fillText(Sim.sectorDef(sec.id).name.toUpperCase(), x + 5, y + 12);
-    const n = Sim.needs(sec);
+    // Full bar = 3 days of advancing, the most the trucks stock at the front
+    const n = Sim.needs(sec, 'advance');
     const bar = (v, yy, c) => {
       ctx.fillStyle = 'rgba(40,30,15,.18)'; ctx.fillRect(x + 5, yy, w - 10, 4);
       ctx.fillStyle = c; ctx.fillRect(x + 5, yy, (w - 10) * Math.max(0, Math.min(1, v)), 4);
@@ -332,9 +333,12 @@ const Draw = (() => {
     if (opts.anim) drawMoving(st, opts.anim);
   }
 
+  // Share of their route the trains and lorries cover in one day's animation (keeps their speed when the animation is shorter)
+  const ROLL = 0.5;
+
   // Trains and lorries moving during the end-of-day animation, using the same 🚂 and 🚚 as the sector rows
   function drawMoving(st, a) {
-    const t = a.t;
+    const t = a.t * ROLL;
     st.sectors.forEach((sec, i) => {
       const rhKm = a.railheads[i], frontKm = a.fronts[i];
       const trains = Math.min(4, Math.round(sec.trains));

@@ -1,7 +1,7 @@
 // Railhead: start-up, the end-of-day animation and input
 
 window.Game = (() => {
-  const ANIM_MS = 3200;   // how long the trains and lorries roll at the end of each day
+  const ANIM_MS = 1600;   // how long the trains and lorries roll at the end of each day
   let st, busy = false, hover = null;
   const canvas = document.getElementById('map');
   const G = window.Game = { forecast: {} };

@@ -11,7 +11,7 @@ const { chromium } = require(path.join(__dirname, '..', '..', 'harrier-carrier-p
   for (let i = 0; i < +days; i++) { await page.evaluate(() => { Game.endDay(); Game.endDay(); }); await page.waitForTimeout(150); }
   await page.waitForTimeout(400);
   await page.evaluate(() => Game.endDay());
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(700);
   await page.screenshot({ path: `screenshots/${name}.png`, clip: { x: 0, y: 40, width: 1140, height: 380 } });
   console.log(errors.join('\n') || 'no errors');
   await page.waitForTimeout(2500);
