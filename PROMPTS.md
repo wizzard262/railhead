@@ -82,9 +82,15 @@
 - Yesterday's report was always too big: make it half the size so all the reserves show without scrolling
 - The report now takes a quarter of the side column; each reserve is one line with its cost (trains, then tons a day) beside the name
 
+## 12. Row layout and a spread-out map
+
+- Vertical lines between each section of the North, Centre and South rows: name | supply line | trains | trucks | engineers | mix | bombers
+- The train mix moved one place left (bombers now on the right) and down, in line with the engineers' focus buttons
+- Warsaw higher and the other stations spread wider top to bottom; smaller Pripet marshes; real geography doesn't matter. Stations now sit on a hand-made board layout, with the rivers redrawn to pass the right towns, and the map's subtitle dropped so it doesn't clash with the border
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 150 min | Prompts 6–11: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report |
+| 2 | 2026-10-28 | about 170 min | Prompts 6–12: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |

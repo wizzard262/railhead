@@ -1,22 +1,26 @@
-// Railhead: the staff map. It is 1000 units wide and as tall as its box allows,
-// with the stations spread to fill it edge to edge
+// Railhead: the staff map. It is 1000 units wide and as tall as its box allows.
+// Stations are placed for a clear game board rather than true geography
 
 const Draw = (() => {
   const W = 1000;
   let H = 425;
   let canvas, ctx, paper, paperH = 0, scale = 1;
 
-  // The stations' corners (Warsaw west, Roslavl east, Polotsk north, Brest south) and the room left round them
-  const LON0 = 21.0, LON1 = 32.86, LAT0 = 52.10, LAT1 = 55.49;
+  // Room left round the stations for their labels
   const M = { left: 70, right: 80, top: 40, bottom: 48 };
 
-  // Map position from longitude and latitude
-  const px = (lon, lat) => ({
-    x: M.left + (lon - LON0) / (LON1 - LON0) * (W - M.left - M.right),
-    y: M.top + (LAT1 - lat) / (LAT1 - LAT0) * (H - M.top - M.bottom),
-  });
+  // Where each station sits: x from 0 (left) to 1 (right), y from 0 (top) to 1 (bottom)
+  const LAYOUT = {
+    warsaw: [0.00, 0.60], bialystok: [0.18, 0.47], brest: [0.23, 1.00],
+    lida: [0.36, 0.33], molodechno: [0.49, 0.20], polotsk: [0.66, 0.00], vitebsk: [0.79, 0.07],
+    baranovichi: [0.42, 0.74], minsk: [0.55, 0.47], borisov: [0.64, 0.36], orsha: [0.79, 0.30], smolensk: [0.93, 0.19],
+    slutsk: [0.55, 0.88], bobruisk: [0.69, 0.82], mogilev: [0.80, 0.58], roslavl: [1.00, 0.60],
+  };
+
+  // Map position from a layout position
+  const px = (fx, fy) => ({ x: M.left + fx * (W - M.left - M.right), y: M.top + fy * (H - M.top - M.bottom) });
   const P = {};
-  function project() { for (const id in NODES) P[id] = px(NODES[id].lon, NODES[id].lat); }
+  function project() { for (const id in NODES) P[id] = px(...LAYOUT[id]); }
   project();
 
   // Point a given distance (km from Warsaw) along a sector's line
@@ -79,72 +83,71 @@ const Draw = (() => {
       g.fillRect(r() * W, r() * H, 1 + r() * 1.5, 1 + r() * 1.5);
     }
     // Map grid
-    g.strokeStyle = 'rgba(120,95,50,.18)'; g.lineWidth = 0.7;
-    for (let lon = 21; lon <= 33; lon++) { const a = px(lon, 57), b = px(lon, 51); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
-    for (let lat = 52; lat <= 56; lat++) { const a = px(19, lat), b = px(35, lat); g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(b.x, b.y); g.stroke(); }
-    g.fillStyle = 'rgba(120,95,50,.5)'; g.font = '10px "Special Elite", monospace';
-    for (let lon = 22; lon <= 32; lon += 2) { const a = px(lon, 51.7); g.fillText(lon + '°E', a.x + 2, H - 6); }
-    // Pripet marshes
-    const marsh = [[23.8, 51.5], [25, 52.4], [26.6, 52.7], [28.4, 52.6], [30.2, 52.4], [31, 51.5]].map(([lo, la]) => px(lo, la));
+    g.strokeStyle = 'rgba(120,95,50,.16)'; g.lineWidth = 0.7;
+    for (let x = 50; x < W; x += 50) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }
+    for (let y = 50; y < H; y += 50) { g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    const pts = list => list.map(([fx, fy]) => px(fx, fy));
+    // Pripet marshes: a small patch at the bottom
+    const marsh = pts([[0.30, 1.12], [0.34, 0.96], [0.46, 0.93], [0.62, 0.96], [0.70, 1.12]]);
     g.fillStyle = 'rgba(110,130,100,.16)';
     g.beginPath(); g.moveTo(marsh[0].x, marsh[0].y);
     for (const p of marsh) g.lineTo(p.x, p.y);
-    g.lineTo(marsh[marsh.length - 1].x, H); g.lineTo(marsh[0].x, H); g.closePath(); g.fill();
+    g.closePath(); g.fill();
     g.strokeStyle = 'rgba(70,95,70,.45)'; g.lineWidth = 0.8;
-    for (let i = 0; i < 260; i++) {
-      const x = marsh[0].x + r() * (marsh[marsh.length - 1].x - marsh[0].x), y = px(0, 52.75).y + r() * (H - px(0, 52.75).y);
+    for (let i = 0; i < 160; i++) {
+      const x = marsh[0].x + r() * (marsh[4].x - marsh[0].x), y = marsh[2].y + r() * (H - marsh[2].y);
       if (!g.isPointInPath(x, y)) continue;
       g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x + 4, y);
       g.moveTo(x - 2, y); g.lineTo(x - 3, y - 4); g.moveTo(x, y); g.lineTo(x, y - 5); g.moveTo(x + 2, y); g.lineTo(x + 3, y - 4); g.stroke();
     }
-    g.fillStyle = 'rgba(60,80,60,.55)'; g.font = 'italic 13px Georgia, serif';
-    g.fillText('P R I P E T   M A R S H E S', px(26, 52.15).x, px(26, 52.15).y);
+    g.fillStyle = 'rgba(60,80,60,.55)'; g.font = 'italic 12px Georgia, serif';
+    const ml = px(0.40, 1.02);
+    g.fillText('P R I P E T   M A R S H E S', ml.x, ml.y);
     // Forests
-    const forests = [[24.2, 54.6], [25.6, 53.3], [28.0, 54.9], [29.5, 54.0], [31.2, 55.6], [27.0, 55.4], [31.6, 53.4], [23.9, 53.6], [29.9, 55.0]];
-    for (const [lo, la] of forests) {
-      const c0 = px(lo, la);
+    const forests = [[0.26, 0.24], [0.29, 0.62], [0.47, 0.06], [0.62, 0.62], [0.88, 0.04], [0.44, 0.48], [0.90, 0.42], [0.12, 0.30], [0.71, 0.20]];
+    for (const [fx, fy] of forests) {
+      const c0 = px(fx, fy);
       for (let i = 0; i < 70; i++) {
-        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 38;
-        const x = c0.x + Math.cos(a) * d * 1.4, y = c0.y + Math.sin(a) * d * 0.75;
+        const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 36;
+        const x = c0.x + Math.cos(a) * d * 1.4, y = c0.y + Math.sin(a) * d * 0.8;
         g.fillStyle = `rgba(80,105,60,${0.12 + r() * 0.12})`;
         g.beginPath(); g.arc(x, y, 3 + r() * 3, 0, Math.PI * 2); g.fill();
       }
     }
-    // Rivers
+    // Rivers, drawn to pass the right towns on this layout
     const rivers = {
-      'Dvina':    [[26.6, 56.2], [27.6, 55.8], [28.8, 55.52], [29.6, 55.35], [30.2, 55.22], [31.0, 55.25], [31.8, 55.6]],
-      'Dnieper':  [[33.0, 54.9], [32.05, 54.80], [31.2, 54.68], [30.45, 54.52], [30.33, 53.92], [30.0, 53.3], [30.3, 52.5], [30.5, 51.5]],
-      'Berezina': [[28.3, 54.9], [28.52, 54.24], [28.9, 53.7], [29.22, 53.16], [29.6, 52.6], [30.0, 52.1]],
-      'Neman':    [[23.9, 54.5], [24.6, 53.7], [25.6, 53.4], [26.5, 53.5], [27.2, 53.9]],
-      'Bug':      [[23.3, 51.5], [23.66, 52.08], [23.0, 52.6], [22.2, 52.9], [21.3, 52.5]],
-      'Sozh':     [[32.6, 54.6], [32.0, 53.9], [31.4, 53.2], [31.0, 52.4]],
+      'Dvina':    [[0.46, -0.12], [0.58, -0.04], [0.67, 0.03], [0.73, 0.06], [0.80, 0.10], [0.88, 0.07], [0.97, -0.06]],
+      'Dnieper':  [[1.03, 0.14], [0.94, 0.22], [0.86, 0.26], [0.80, 0.33], [0.79, 0.45], [0.81, 0.61], [0.77, 0.80], [0.79, 1.12]],
+      'Berezina': [[0.60, 0.10], [0.64, 0.38], [0.66, 0.60], [0.70, 0.84], [0.73, 1.12]],
+      'Neman':    [[0.22, 0.12], [0.30, 0.30], [0.40, 0.40], [0.48, 0.38], [0.53, 0.30]],
+      'Bug':      [[0.17, 1.12], [0.235, 1.03], [0.17, 0.86], [0.08, 0.76], [0.02, 0.66]],
+      'Sozh':     [[0.98, 0.32], [0.93, 0.50], [0.89, 0.72], [0.86, 1.12]],
     };
     g.strokeStyle = 'rgba(70,110,150,.7)'; g.lineCap = 'round'; g.lineJoin = 'round';
     g.fillStyle = 'rgba(50,90,130,.75)'; g.font = 'italic 11px Georgia, serif';
     for (const name in rivers) {
-      const pts = rivers[name].map(([lo, la]) => px(lo, la));
+      const rp = pts(rivers[name]);
       g.lineWidth = name === 'Dnieper' || name === 'Dvina' ? 2.6 : 1.8;
-      g.beginPath(); g.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length - 1; i++) {
-        const mx = (pts[i].x + pts[i + 1].x) / 2, my = (pts[i].y + pts[i + 1].y) / 2;
-        g.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+      g.beginPath(); g.moveTo(rp[0].x, rp[0].y);
+      for (let i = 1; i < rp.length - 1; i++) {
+        const mx = (rp[i].x + rp[i + 1].x) / 2, my = (rp[i].y + rp[i + 1].y) / 2;
+        g.quadraticCurveTo(rp[i].x, rp[i].y, mx, my);
       }
-      g.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y); g.stroke();
-      const m = pts[Math.max(1, Math.floor(pts.length / 3))];
+      g.lineTo(rp[rp.length - 1].x, rp[rp.length - 1].y); g.stroke();
+      const m = rp[Math.max(1, Math.floor(rp.length / 3))];
       g.fillText(name, m.x + 6, m.y - 4);
     }
     // The border on 22 June
-    const border = [[22.6, 56.2], [23.0, 54.4], [22.7, 53.6], [22.2, 53.1], [23.66, 52.08], [24.1, 51.4]].map(([lo, la]) => px(lo, la));
+    const border = pts([[0.13, -0.12], [0.14, 0.28], [0.10, 0.48], [0.13, 0.72], [0.21, 0.95], [0.26, 1.12]]);
     g.strokeStyle = 'rgba(110,60,110,.55)'; g.lineWidth = 2; g.setLineDash([10, 5, 2, 5]);
     g.beginPath(); g.moveTo(border[0].x, border[0].y); for (const p of border) g.lineTo(p.x, p.y); g.stroke();
     g.setLineDash([]);
     g.fillStyle = 'rgba(110,60,110,.7)'; g.font = '10px "Special Elite", monospace';
-    g.save(); g.translate(px(22.85, 55.4).x, px(22.85, 55.4).y); g.rotate(1.45); g.fillText('Border 22.6.41', 0, 0); g.restore();
+    const bl = px(0.145, 0.10);
+    g.save(); g.translate(bl.x, bl.y); g.rotate(1.53); g.fillText('Border 22.6.41', 0, 0); g.restore();
     // Title block
     g.fillStyle = 'rgba(40,30,15,.85)'; g.font = '22px "Special Elite", monospace';
     g.fillText('RAILHEAD', 24, 40);
-    g.font = '12px "Special Elite", monospace';
-    g.fillText('Army Group Centre · supply situation', 24, 58);
     return c;
   }
 

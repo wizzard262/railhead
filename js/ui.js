@@ -57,7 +57,7 @@ const UI = (() => {
 
   const cards = [];
 
-  // One row per sector: name, supply line, trains, trucks, engineers, bombers, mix, then the advice
+  // One row per sector: name, supply line, trains, trucks, engineers, mix, bombers, then the advice
   function buildSectors() {
     const wrap = $('#sectors');
     wrap.textContent = '';
@@ -100,10 +100,11 @@ const UI = (() => {
       const mix = segment(MIXES.map(m => ({ value: m.fuel, label: m.label, title: `${m.fuel}% fuel, ${100 - m.fuel}% ammo` })),
         () => sec.fuelMix, v => sec.fuelMix = v);
       const mixNote = el('span', 'note');
-      mixCell.append(mix, mixNote);
+      mixNote.classList.add('mix-top');
+      mixCell.append(mixNote, mix);
 
       const advice = el('div', 'c-advice');
-      row.append(name, pipe, trains, trucks, engineers, bombers, mixCell, advice);
+      row.append(name, pipe, trains, trucks, engineers, mixCell, bombers, advice);
       wrap.append(row);
       cards.push({ sec, status, posture, forces, pipe, steppers: [trains, trucks, engineers, bombers], focus, mix, mixNote, advice });
     });
@@ -297,7 +298,7 @@ const UI = (() => {
       c.focus.update();
       const rec = matchMix(sec);
       c.mix.update(rec);
-      c.mixNote.innerHTML = sec.fuelMix === rec ? 'matches what it uses' : `<span class="warn">green line</span> matches what it uses`;
+      c.mixNote.innerHTML = sec.fuelMix === rec ? '<span>matches what it uses</span>' : '<span><span class="warn">green line</span> matches what it uses</span>';
       const forces = UNIT_ORDER.map(u => `<span title="${UNIT_TYPES[u].name}">${UNIT_TYPES[u].short} <b>${sec.forces[u]}</b></span>`).join(' · ');
       const coming = [
         ...st.queue.filter(q => q.sector === sec.id).map(q => `${UNIT_TYPES[q.type].short} loading`),

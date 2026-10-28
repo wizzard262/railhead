@@ -12,8 +12,8 @@
     --bg: #e6dcc3; --panel: #f6efdd; --ink: #2b2418; --muted: #6e6350; --line: #cbbd9a;
     --good: #3f7a3a; --warn: #b4651a; --bad: #a3291c; --accent: #2f4f6f;
     --fuel: #c47a1a; --ammo: #5a5a5a;
-    /* The board's columns: sector, supply line, trains, trucks, engineers, bombers, mix */
-    --cols: 150px minmax(390px, 2.4fr) minmax(104px, .5fr) minmax(104px, .55fr) minmax(200px, .9fr) minmax(104px, .5fr) minmax(214px, .9fr);
+    /* The board's columns: sector, supply line, trains, trucks, engineers, mix, bombers */
+    --cols: 150px minmax(400px, 2.4fr) minmax(108px, .5fr) minmax(108px, .55fr) minmax(212px, .9fr) minmax(222px, .9fr) minmax(108px, .5fr);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -75,7 +75,11 @@
 
   /* Bottom: one row per sector, with the free counts above each resource */
   #board { flex: none; padding: 8px 16px 10px; }
-  .brow { display: grid; grid-template-columns: var(--cols); column-gap: 10px; align-items: start; }
+  .brow { display: grid; grid-template-columns: var(--cols); column-gap: 0; align-items: stretch; }
+  /* A line between each section of a sector row */
+  .brow > .cell, .brow.head > span:not(:first-child) { border-left: 1px solid var(--line); padding: 0 8px; }
+  .brow.head > span:not(:first-child) { border-left-color: transparent; }
+  .c-name { padding-right: 8px; }
   .brow.head { font-size: 11.5px; color: var(--muted); padding: 0 10px 3px 16px; align-items: end; }
   .brow.head b { color: var(--ink); }
   .brow.head > span { white-space: nowrap; }
@@ -90,12 +94,13 @@
   .status.bad { background: rgba(163,41,28,.15); color: var(--bad); font-weight: 600; }
   .forces { font-size: 12px; color: var(--muted); line-height: 1.3; }
   .forces b { color: var(--ink); }
-  .c-advice { grid-column: 2 / -1; font-size: 13px; padding: 3px 8px; border-radius: 6px; }
+  .c-advice { grid-column: 2 / -1; margin-left: 8px; font-size: 13px; padding: 3px 8px; border-radius: 6px; }
   .c-advice.ok { background: rgba(63,122,58,.1); }
   .c-advice.meh { background: rgba(196,122,26,.14); }
   .c-advice.bad { background: rgba(163,41,28,.12); }
   .cell { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .note { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
+  .mix-top { min-height: 26px; display: flex; align-items: center; }
 
   .seg { display: inline-flex; }
   .seg button { border-radius: 0; margin-left: -1px; padding: 2px 7px; font-size: 12px; white-space: nowrap; }
@@ -174,7 +179,7 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v9</span>
+    <span id="ver">v10</span>
   </div>
 </header>
 
@@ -215,8 +220,8 @@
     <span>🚂 Trains <span class="free" id="free-trains"></span></span>
     <span>🚚 Trucks <span class="free" id="free-trucks"></span></span>
     <span>🛠️ Engineers <span class="free" id="free-engineers"></span></span>
-    <span>✈️ Bombers <span class="free" id="free-bombers"></span></span>
     <span class="h-mix">Train mix ⛽ / 💥</span>
+    <span>✈️ Bombers <span class="free" id="free-bombers"></span></span>
   </div>
   <div id="sectors"></div>
 </div>
@@ -252,10 +257,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=9"></script>
-<script src="js/sim.js?v=9"></script>
-<script src="js/draw.js?v=9"></script>
-<script src="js/ui.js?v=9"></script>
-<script src="js/main.js?v=9"></script>
+<script src="js/data.js?v=10"></script>
+<script src="js/sim.js?v=10"></script>
+<script src="js/draw.js?v=10"></script>
+<script src="js/ui.js?v=10"></script>
+<script src="js/main.js?v=10"></script>
 </body>
 </html>
