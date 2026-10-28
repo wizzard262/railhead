@@ -171,6 +171,10 @@
 - Chosen: pick a level each game, on the How to play screen: **Easy** (deadline 12 August: leaving everything alone wins about 45%), **Normal** (10 August, the default: about 34%, good play 81–100%), **Hard** (8 August: about 17%)
 - The level is remembered on this computer; choosing one before the first End day starts that game again at the new level, later it applies to the next New game. The header shows it (e.g. "Day 3 of 50 · Normal")
 
+## 26. Marsh to the edge
+
+- Redraw the Pripet marshes so they reach the bottom of the map
+
 ## Sessions
 
 | # | Date | Length | What we did |

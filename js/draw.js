@@ -89,6 +89,7 @@ const Draw = (() => {
     const pts = list => list.map(([fx, fy]) => px(fx, fy));
     // Pripet marshes: a small patch at the bottom
     const marsh = pts([[0.30, 1.12], [0.34, 0.96], [0.46, 0.93], [0.62, 0.96], [0.70, 1.12]]);
+    marsh[0].y = marsh[4].y = H + 2;   // right down to the bottom edge of the map
     g.fillStyle = 'rgba(110,130,100,.16)';
     g.beginPath(); g.moveTo(marsh[0].x, marsh[0].y);
     for (const p of marsh) g.lineTo(p.x, p.y);
