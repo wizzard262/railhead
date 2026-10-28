@@ -48,7 +48,7 @@ const Draw = (() => {
     const box = canvas.closest('.mapbox');
     const dpr = window.devicePixelRatio || 1;
     let w, h;
-    if (box && !window.matchMedia('(max-width: 1250px)').matches && box.clientHeight > 100) {
+    if (box && !window.matchMedia('(max-width: 1300px)').matches && box.clientHeight > 100) {
       w = box.clientWidth; h = box.clientHeight;
     } else {
       w = box ? box.clientWidth : canvas.getBoundingClientRect().width; h = w * 425 / W;

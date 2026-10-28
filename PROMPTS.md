@@ -140,6 +140,13 @@
 - The icons should be pictures: a soldier, a tank and an artillery gun
 - Reserves now stand beside Warsaw as little pictures (a soldier, a tank, a field gun), one per unit and a row per type, overlapping a little when there are many; hovering them shows Warsaw's tooltip. The same pictures head the force list in each sector row, the reserves box and the map legend
 
+## 22. Reserves live, and the next station
+
+- On the live game the reserves waiting at Warsaw didn't show: the version with them drawn beside Warsaw hadn't been published yet (now it is)
+- After the front in each row, show a line to the next station: a dashed red line (Soviet track) with the distance and the station's name, 🎯 if it's an objective, 🏁 once the line is taken
+- The rows fit smaller laptop screens without scrolling sideways (a more compact supply line below 1500 px wide, stacked rows below 1300 px)
+- "coming: Inf loading": the unit pictures now show there too, and in the loading list under the reserves
+
 ## Sessions
 
 | # | Date | Length | What we did |

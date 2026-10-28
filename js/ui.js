@@ -293,7 +293,16 @@ const UI = (() => {
         ${past ? seg('train extend', f.trainRatio, `🚂 +${t(rh.laid)} km`, 'to track end', false) : ''}
         ${seg('truck', f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`, true)}
       </div>
-      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽', 'fuel')}</small><small>${days(f.daysA, '💥', 'ammo')}</small><small>uses ${t(f.need)}/d</small></div>`;
+      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽', 'fuel')}</small><small>${days(f.daysA, '💥', 'ammo')}</small><small>uses ${t(f.need)}/d</small></div>
+      ${nextStation(sec)}`;
+  }
+
+  // How far the front still has to go to the next station on its line
+  function nextStation(sec) {
+    const line = Sim.sectorDef(sec.id).line, kms = Sim.LINES[sec.id];
+    const i = kms.findIndex(k => k > sec.front + 0.5);
+    if (i < 0) return '<div class="pipe-next done"><span class="flow">🏁</span><span class="sub">line taken</span></div>';
+    return `<div class="pipe-next" title="The next station the front will take"><span class="flow">${t(kms[i] - sec.front)} km</span><i></i><span class="sub">${NODES[line[i]].name}${OBJECTIVES.includes(line[i]) ? ' 🎯' : ''}</span></div>`;
   }
 
   function freeBadge(id, n) {
@@ -328,8 +337,8 @@ const UI = (() => {
       c.mixNote.innerHTML = sec.fuelMix === rec ? '<span>matches what it uses</span>' : '<span><span class="warn">green line</span> matches what it uses</span>';
       const forces = UNIT_ORDER.map(u => `<span class="force" title="${UNIT_TYPES[u].name}">${unitIcon(u)} ${UNIT_TYPES[u].short}: <b>${sec.forces[u]}</b></span>`).join('');
       const coming = [
-        ...st.queue.filter(q => q.sector === sec.id).map(q => `${UNIT_TYPES[q.type].short} loading`),
-        ...st.marching.filter(m => m.sector === sec.id).map(m => `${UNIT_TYPES[m.type].short} in ${Math.max(1, m.day - st.day + 1)} d`),
+        ...st.queue.filter(q => q.sector === sec.id).map(q => `${unitIcon(q.type)} ${UNIT_TYPES[q.type].short} loading`),
+        ...st.marching.filter(m => m.sector === sec.id).map(m => `${unitIcon(m.type)} ${UNIT_TYPES[m.type].short} in ${Math.max(1, m.day - st.day + 1)} d`),
       ];
       c.forces.innerHTML = forces + (coming.length ? `<span class="coming">coming: ${coming.join(', ')}</span>` : '');
     }
@@ -360,7 +369,7 @@ const UI = (() => {
     }
     for (const q of st.queue) {
       const row = el('div', 'unit queued');
-      row.append(el('span', '', `<b>${UNIT_TYPES[q.type].name}</b> <span class="muted">loading for ${Sim.sectorDef(q.sector).name}</span> `));
+      row.append(el('span', '', `${unitIcon(q.type)} <b>${UNIT_TYPES[q.type].name}</b> <span class="muted">loading for ${Sim.sectorDef(q.sector).name}</span> `));
       if (q.loaded === 0) {
         const b = el('button', 'tiny', 'Cancel');
         b.onclick = () => { Sim.cancelUnit(st, q.id); onChange(); };
