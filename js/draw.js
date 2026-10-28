@@ -179,33 +179,78 @@ const Draw = (() => {
     }
   }
 
+  // Buildings for a small and a large town: [x, height, width, roof] from the town's centre
+  const TOWN = {
+    small: [[-8, 8, 6, 'gable'], [-1, 11, 6, 'flat'], [5, 7, 5, 'gable']],
+    large: [[-12, 9, 6, 'gable'], [-6, 15, 5, 'flat'], [-1, 20, 4, 'spire'], [3, 12, 6, 'flat'], [9, 8, 5, 'gable']],
+  };
+
+  // Each station is a small or large town; the more it is damaged, the more fire and smoke
   function drawStation(st, id, hover) {
     const p = P[id], n = st.nodes[id], N = NODES[id];
     const objective = OBJECTIVES.includes(id);
     const big = N.cap >= 9;
-    ctx.lineWidth = 2;
+    const base = p.y + 6;
+    ctx.lineWidth = 1.2;
     ctx.fillStyle = n.captured ? '#f4ead2' : '#e9c6b8';
     ctx.strokeStyle = n.captured ? '#2b2418' : '#8a2a1e';
-    ctx.beginPath();
-    if (big) ctx.rect(p.x - 7, p.y - 7, 14, 14); else ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
+    for (const [bx, h, w, roof] of TOWN[big ? 'large' : 'small']) {
+      const x = p.x + bx, top = base - h;
+      ctx.beginPath();
+      ctx.rect(x, top, w, h);
+      if (roof === 'gable') { ctx.moveTo(x - 1, top); ctx.lineTo(x + w / 2, top - 4); ctx.lineTo(x + w + 1, top); }
+      if (roof === 'spire') { ctx.moveTo(x, top); ctx.lineTo(x + w / 2, top - 7); ctx.lineTo(x + w, top); }
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(p.x - (big ? 14 : 10), base); ctx.lineTo(p.x + (big ? 15 : 11), base); ctx.stroke();
     if (n.captured && id !== 'warsaw') {
+      fire(p, base, 1 - n.cond / 100, big, id);
       // Condition bar
       const c = n.cond / 100;
-      ctx.fillStyle = 'rgba(40,30,15,.25)'; ctx.fillRect(p.x - 12, p.y + 10, 24, 4);
+      ctx.fillStyle = 'rgba(40,30,15,.25)'; ctx.fillRect(p.x - 12, base + 4, 24, 4);
       ctx.fillStyle = c > 0.66 ? '#3f7a3a' : c > 0.33 ? '#c47a1a' : '#a3291c';
-      ctx.fillRect(p.x - 12, p.y + 10, 24 * c, 4);
-      if (n.cond <= 0) { ctx.strokeStyle = '#a3291c'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(p.x - 7, p.y - 7); ctx.lineTo(p.x + 7, p.y + 7); ctx.moveTo(p.x + 7, p.y - 7); ctx.lineTo(p.x - 7, p.y + 7); ctx.stroke(); }
+      ctx.fillRect(p.x - 12, base + 4, 24 * c, 4);
     }
     if (objective) {
       ctx.strokeStyle = n.captured ? '#3f7a3a' : '#a3291c'; ctx.lineWidth = 2;
-      ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(p.x, p.y - 2, big ? 20 : 16, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
     }
-    if (hover) { ctx.strokeStyle = '#1a5fa8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y, 19, 0, Math.PI * 2); ctx.stroke(); }
+    if (hover) { ctx.strokeStyle = '#1a5fa8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(p.x, p.y - 2, big ? 24 : 20, 0, Math.PI * 2); ctx.stroke(); }
     ctx.fillStyle = '#2b2418';
     ctx.font = (big ? 'bold 13px' : '12px') + ' Georgia, serif';
-    const lx = id === 'warsaw' ? -20 : 10, ly = id === 'polotsk' ? -10 : -9;
+    const [lx, ly] = labelOffset(id);
     ctx.fillText(N.name, p.x + lx, p.y + ly);
+  }
+
+  function labelOffset(id) {
+    const big = NODES[id].cap >= 9;
+    if (id === 'warsaw') return [-40, -18];
+    return [big ? 17 : 13, id === 'polotsk' ? -12 : -9];
+  }
+
+  // Flames and smoke over a damaged town: none when whole, more and bigger as damage grows
+  function fire(p, base, dmg, big, id) {
+    if (dmg < 0.08) return;
+    let seed = 0;
+    for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) % 9973;
+    const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const spread = big ? 12 : 8;
+    // Smoke first, so the flames sit in front of it
+    const puffs = Math.round(dmg * 9);
+    for (let k = 0; k < puffs; k++) {
+      const up = 10 + k * (4 + dmg * 4);
+      ctx.fillStyle = `rgba(60,55,50,${Math.max(0.08, 0.25 + dmg * 0.35 - k * 0.03)})`;
+      ctx.beginPath(); ctx.arc(p.x + (r() - 0.3) * spread + k * 3, base - up - 6, 2.5 + k * 1.1 + dmg * 3, 0, Math.PI * 2); ctx.fill();
+    }
+    const flames = Math.max(1, Math.round(dmg * 7));
+    for (let k = 0; k < flames; k++) {
+      const x = p.x + (r() * 2 - 1) * spread, h = 4 + dmg * 16 * (0.6 + r() * 0.6), w = 2 + dmg * 3.5;
+      const y = base - 4 - r() * (big ? 10 : 6);
+      ctx.fillStyle = '#d9541e';
+      ctx.beginPath(); ctx.moveTo(x - w, y); ctx.quadraticCurveTo(x - w, y - h * 0.6, x, y - h); ctx.quadraticCurveTo(x + w, y - h * 0.6, x + w, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f2b233';
+      ctx.beginPath(); ctx.moveTo(x - w / 2, y); ctx.quadraticCurveTo(x - w / 2, y - h * 0.4, x, y - h * 0.6); ctx.quadraticCurveTo(x + w / 2, y - h * 0.4, x + w / 2, y); ctx.closePath(); ctx.fill();
+    }
   }
 
   // A railhead flag in the sector's colour
@@ -214,12 +259,13 @@ const Draw = (() => {
     if (rh.node === 'warsaw') return;
     const col = Sim.sectorDef(sec.id).colour;
     const past = rh.laid >= 1;
+    // At a station the flag stands just left of the town; out on the line it stands on the track
     const p = past ? along(sec.id, rh.km) : P[rh.node];
-    const ox = past ? 0 : (i - 1) * 9;
+    const ox = past ? 0 : -20 + (i - 1) * 6;
     ctx.strokeStyle = '#2b2418'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 4); ctx.lineTo(p.x + ox, p.y - 26); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y + 4); ctx.lineTo(p.x + ox, p.y - 20); ctx.stroke();
     ctx.fillStyle = col;
-    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 26); ctx.lineTo(p.x + ox + 13, p.y - 22); ctx.lineTo(p.x + ox, p.y - 18); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 20); ctx.lineTo(p.x + ox - 13, p.y - 16); ctx.lineTo(p.x + ox, p.y - 12); ctx.closePath(); ctx.fill();
   }
 
   // The front line and the Soviet side shaded
@@ -258,14 +304,25 @@ const Draw = (() => {
   // The sector's badge sits back on the German side, as a speech bubble whose tail points at its front
   const BADGE_W = 98, BADGE_H = 40;
 
+  // The railhead flags, which badges must not cover either (same spots as drawRailhead uses)
+  function flagBoxes(st) {
+    return st.sectors.map((sec, i) => {
+      const rh = Sim.railhead(st, sec);
+      const past = rh.laid >= 1;
+      const p = past ? along(sec.id, rh.km) : P[rh.node];
+      const ox = past ? 0 : -20 + (i - 1) * 6;
+      return { x: p.x + ox - 16, y: p.y - 23, w: 19, h: 29 };
+    });
+  }
+
   // Everything a badge must not cover: each station and its name
   function stationBoxes() {
     const boxes = [];
     for (const id in NODES) {
       const p = P[id], big = NODES[id].cap >= 9;
       ctx.font = (big ? 'bold 13px' : '12px') + ' Georgia, serif';
-      const lx = id === 'warsaw' ? -20 : 10, ly = id === 'polotsk' ? -10 : -9;
-      boxes.push({ x: p.x - 12, y: p.y - 12, w: 24, h: 30 });                                   // station, condition bar, objective ring
+      const [lx, ly] = labelOffset(id);
+      boxes.push({ x: p.x - 16, y: p.y - 34, w: 32, h: 50 });                                   // town, its smoke, condition bar, objective ring
       boxes.push({ x: p.x + lx - 2, y: p.y + ly - 13, w: ctx.measureText(NODES[id].name).width + 4, h: 17 }); // its name
     }
     return boxes;
@@ -288,7 +345,7 @@ const Draw = (() => {
   // Where the three badges go: back from their fronts on the German side if there's room,
   // otherwise anywhere nearby (over the front if need be), never on a station or another badge
   function badgePlaces(st) {
-    const stations = stationBoxes();
+    const stations = stationBoxes().concat(flagBoxes(st));
     const tries = [];
     for (const dx of [-150, -125, -175, -100, -200, -75, 40, 70, 100]) {
       for (const dy of [-62, -20, 20, -100, 60, -140, 100]) tries.push({ dx, dy });
