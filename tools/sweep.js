@@ -1,5 +1,5 @@
 // Tries different values of the numbers in js/data.js and plays each set with a few strategies:
-// node tools/sweep.js "SHORT_SUPPLY=0.2,WELL_SUPPLIED=1.25" "LAST_DAY=46" ...
+// node tools/sweep.js "SHORT_SUPPLY=0.2,WELL_SUPPLIED=1.25" "LEVEL=hard" ...
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const read = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8');
 
@@ -36,8 +36,10 @@ strategies.build4Recon = st => { strategies.build4(st); strategies.recon(st); };
 
 for (const arg of process.argv.slice(2).length ? process.argv.slice(2) : ['']) {
   let data = read('data.js');
+  let level = 'normal';
   for (const kv of arg.split(',').filter(Boolean)) {
     const [k, v] = kv.split('=');
+    if (k === 'LEVEL') { level = v; continue; }   // easy, normal or hard
     data = data.replace(new RegExp(`const ${k} = [^;]+;`), `const ${k} = ${v};`);
   }
   const ctx = vm.createContext({ Math, Date, console, module: undefined });
@@ -47,7 +49,7 @@ for (const arg of process.argv.slice(2).length ? process.argv.slice(2) : ['']) {
   for (const [name, play] of Object.entries(strategies)) {
     let wins = 0;
     for (let seed = 1; seed <= 150; seed++) {
-      const st = ctx.Sim.newGame(seed);
+      const st = ctx.Sim.newGame(seed, level);
       while (!st.won && !st.lost) { play(st); ctx.Sim.endDay(st); }
       if (st.won) wins++;
     }

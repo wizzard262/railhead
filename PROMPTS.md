@@ -175,10 +175,16 @@
 
 - Redraw the Pripet marshes so they reach the bottom of the map
 
+## 27. Balanced engineers that finish repairs
+
+- Engineers on Balanced, but after a day both bombed stations on that line stayed at 70%
+- That was Balanced's old rule: repair up to 70%, then lay track, and only finish repairs with whatever was left. Now **Balanced** fixes anything below 50% first, then splits the rest **half on repairs up to 100%, half on track** (one side's spare goes to the other). **Track** still only patches stations under 25%; **Station** still repairs everything first
+- New balance (200 games each, leaving everything alone / bombing build-ups / holding when short / both): Easy 36 / 96 / 89 / 100%, Normal 26 / 78 / 83 / 99%, Hard 9 / 21 / 67 / 91%. Level hints updated
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 300 min | Prompts 6–25: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 310 min | Prompts 6–27: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |
