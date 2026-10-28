@@ -2,9 +2,9 @@
 const path = require('path');
 const { chromium } = require(path.join(__dirname, '..', '..', 'harrier-carrier-playwright-tests', 'node_modules', 'playwright'));
 (async () => {
-  const [name = 'test', days = '0', width = '1600'] = process.argv.slice(2);
+  const [name = 'test', days = '0', width = '1600', height] = process.argv.slice(2);
   const browser = await chromium.launch({ headless: false, slowMo: 40 });
-  const page = await browser.newPage({ viewport: { width: +width, height: +width < 800 ? 900 : 1000 } });
+  const page = await browser.newPage({ viewport: { width: +width, height: +(height || (+width < 800 ? 900 : 1000)) } });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });

@@ -1,11 +1,11 @@
-// Railhead: the staff map, drawn on a 1000 x 640 canvas
+// Railhead: the staff map, drawn on a wide 1000 x 425 canvas
 
 const Draw = (() => {
-  const W = 1000, H = 640;
+  const W = 1000, H = 425;
   let canvas, ctx, paper, scale = 1;
 
   // Map position from longitude and latitude
-  const px = (lon, lat) => ({ x: (lon - 20) * 70 + 40, y: (56 - lat) * 130 + 40 });
+  const px = (lon, lat) => ({ x: (lon - 20) * 70 + 40, y: (55.9 - lat) * 100 + 22 });
   const P = {};
   for (const id in NODES) P[id] = px(NODES[id].lon, NODES[id].lat);
 
@@ -29,12 +29,16 @@ const Draw = (() => {
     resize();
   }
 
+  // Fit the map inside its box, keeping its shape (on narrow screens it just takes the full width)
   function resize() {
-    const r = canvas.getBoundingClientRect();
+    const box = canvas.closest('.mapbox') || canvas.parentElement;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(r.width * dpr);
-    canvas.height = Math.round(r.width * H / W * dpr);
-    canvas.style.height = (r.width * H / W) + 'px';
+    let w = box.clientWidth;
+    if (!window.matchMedia('(max-width: 1250px)').matches && box.clientHeight > 100) w = Math.min(w, box.clientHeight * W / H);
+    canvas.style.width = w + 'px';
+    canvas.style.height = (w * H / W) + 'px';
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(w * H / W * dpr);
     scale = canvas.width / W;
   }
 
@@ -72,7 +76,7 @@ const Draw = (() => {
     g.lineTo(marsh[marsh.length - 1].x, H); g.lineTo(marsh[0].x, H); g.closePath(); g.fill();
     g.strokeStyle = 'rgba(70,95,70,.45)'; g.lineWidth = 0.8;
     for (let i = 0; i < 260; i++) {
-      const x = marsh[0].x + r() * (marsh[marsh.length - 1].x - marsh[0].x), y = 470 + r() * 170;
+      const x = marsh[0].x + r() * (marsh[marsh.length - 1].x - marsh[0].x), y = px(0, 52.75).y + r() * (H - px(0, 52.75).y);
       if (!g.isPointInPath(x, y)) continue;
       g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x + 4, y);
       g.moveTo(x - 2, y); g.lineTo(x - 3, y - 4); g.moveTo(x, y); g.lineTo(x, y - 5); g.moveTo(x + 2, y); g.lineTo(x + 3, y - 4); g.stroke();
@@ -85,7 +89,7 @@ const Draw = (() => {
       const c0 = px(lo, la);
       for (let i = 0; i < 70; i++) {
         const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 38;
-        const x = c0.x + Math.cos(a) * d * 1.4, y = c0.y + Math.sin(a) * d;
+        const x = c0.x + Math.cos(a) * d * 1.4, y = c0.y + Math.sin(a) * d * 0.75;
         g.fillStyle = `rgba(80,105,60,${0.12 + r() * 0.12})`;
         g.beginPath(); g.arc(x, y, 3 + r() * 3, 0, Math.PI * 2); g.fill();
       }
@@ -189,12 +193,37 @@ const Draw = (() => {
   function drawRailhead(st, sec, i) {
     const rh = Sim.railhead(st, sec);
     if (rh.node === 'warsaw') return;
-    const p = P[rh.node], col = Sim.sectorDef(sec.id).colour;
-    const ox = (i - 1) * 9;
+    const col = Sim.sectorDef(sec.id).colour;
+    const past = rh.laid >= 1;
+    const p = past ? along(sec.id, rh.km) : P[rh.node];
+    const ox = past ? 0 : (i - 1) * 9;
     ctx.strokeStyle = '#2b2418'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 8); ctx.lineTo(p.x + ox, p.y - 30); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 4); ctx.lineTo(p.x + ox, p.y - 26); ctx.stroke();
     ctx.fillStyle = col;
-    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 30); ctx.lineTo(p.x + ox + 13, p.y - 26); ctx.lineTo(p.x + ox, p.y - 22); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 26); ctx.lineTo(p.x + ox + 13, p.y - 22); ctx.lineTo(p.x + ox, p.y - 18); ctx.closePath(); ctx.fill();
+    if (past) tag(`+${Math.round(rh.laid)} km laid`, p.x + 4, p.y - 30, col);
+  }
+
+  // A small paper label
+  function tag(text, x, y, col) {
+    ctx.font = 'bold 10px system-ui, sans-serif';
+    const w = ctx.measureText(text).width + 8;
+    ctx.fillStyle = 'rgba(244,234,210,.92)'; ctx.strokeStyle = col; ctx.lineWidth = 1;
+    ctx.fillRect(x - w / 2, y - 11, w, 14); ctx.strokeRect(x - w / 2, y - 11, w, 14);
+    ctx.fillStyle = col; ctx.textAlign = 'center';
+    ctx.fillText(text, x, y);
+    ctx.textAlign = 'left';
+  }
+
+  // How far the front still has to go to the next station on each line
+  function drawNextStation(st, sec) {
+    const line = Sim.sectorDef(sec.id).line, kms = Sim.LINES[sec.id];
+    const i = kms.findIndex(k => k > sec.front + 0.5);
+    if (i < 0) return;
+    const dist = kms[i] - sec.front;
+    const p = along(sec.id, sec.front + Math.min(dist / 2, 40));
+    const col = Sim.sectorDef(sec.id).colour;
+    tag(`${NODES[line[i]].name} ${Math.round(dist)} km ▸`, p.x + 2, p.y + 18, col);
   }
 
   // The front line and the Soviet side shaded
@@ -234,7 +263,7 @@ const Draw = (() => {
   function drawCounter(st, sec, i) {
     const p = along(sec.id, sec.front), col = Sim.sectorDef(sec.id).colour;
     const off = [{ x: -62, y: -30 }, { x: -64, y: -14 }, { x: -60, y: 8 }][i];
-    const x = p.x + off.x, y = p.y + off.y, w = 46, h = 30;
+    const w = 46, h = 30, x = p.x + off.x, y = Math.max(2, Math.min(H - h - 2, p.y + off.y));
     ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([2, 2]);
     ctx.beginPath(); ctx.moveTo(x + w, y + h / 2); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = '#f4ead2'; ctx.strokeStyle = col; ctx.lineWidth = 2.5;
@@ -292,6 +321,7 @@ const Draw = (() => {
     for (const id in NODES) drawStation(st, id, opts.hover === id);
     for (const id of st.events.raids || []) burst({ x: P[id].x + 14, y: P[id].y - 14 }, 'rgba(200,60,20,.75)');
     st.sectors.forEach((s, i) => drawRailhead(st, s, i));
+    st.sectors.forEach(s => drawNextStation(st, s));
     st.sectors.forEach((s, i) => drawCounter(st, s, i));
     if (opts.anim) drawMoving(st, opts.anim);
   }

@@ -13,17 +13,23 @@ const TRAIN_TONS = 450;         // one supply train
 const TRUCK_TONS = 300;         // one truck column, one trip
 const TRUCK_KM_PER_DAY = 250;   // there and back counts double
 const TRUCK_FUEL = 0.0005;      // tons of fuel burnt per ton carried per km
-const CONVERT_KM = 2.5;           // track converted per engineer battalion per day
+const CONVERT_KM = 1.9;           // track converted per engineer battalion per day
 const REPAIR = 6;               // station condition repaired per battalion per day
 const BOMBER_FUEL = 25;         // tons per bomber group per day, from the sector's depot
 const BOMBER_LOSS = 0.04;       // chance a group is lost on each day's sorties
 
 // What engineers do first: repair stations up to repairFirst %, then convert track, then repair the rest
 const ENGINEER_FOCUS = {
-  track:    { name: 'Track',    repairFirst: 25,  hint: 'Push the railhead forward; only fix stations that barely work' },
-  balanced: { name: 'Balanced', repairFirst: 70,  hint: 'Fix badly damaged stations, then lay track' },
-  repair:   { name: 'Repair',   repairFirst: 100, hint: 'Get every station back to full before laying track' },
+  track:    { name: '🛤️ Track',   repairFirst: 25,  hint: 'Push the railhead forward; only fix stations that barely work' },
+  balanced: { name: 'Balanced',   repairFirst: 70,  hint: 'Fix badly damaged stations, then lay track' },
+  station:  { name: 'Station 🚉', repairFirst: 100, hint: 'Get every station back to full before laying track' },
 };
+
+// Fuel share of the supply trains, as fuel:ammo buttons from all-fuel to all-ammo
+const MIXES = [
+  { fuel: 80, label: '⛽ 4:1' }, { fuel: 67, label: '2:1' }, { fuel: 50, label: '1:1' },
+  { fuel: 33, label: '1:2' }, { fuel: 20, label: '1:4 💥' },
+];
 
 // Stations. cap = trains a day it can pass or unload when undamaged
 const NODES = {

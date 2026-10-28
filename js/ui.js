@@ -1,4 +1,4 @@
-// Railhead: the side panel, the report and the pop-up windows
+// Railhead: the sector rows, the report, the reserves and the pop-up windows
 
 const UI = (() => {
   let st, onChange;
@@ -20,99 +20,92 @@ const UI = (() => {
   function show(sel) { $(sel).hidden = false; }
   function hide(m) { (typeof m === 'string' ? $(m) : m).hidden = true; }
 
-  // A [-] n [+] control
+  // A [-] n [+] control with a note under it
   function stepper(label, get, set, canUp, note) {
-    const row = el('div', 'row');
-    row.append(el('span', 'lbl', label));
+    const cell = el('div', 'cell');
+    cell.dataset.label = label;
     const box = el('span', 'step');
     const minus = el('button', '', '−'), val = el('b'), plus = el('button', '', '+');
     minus.setAttribute('aria-label', 'Less ' + label); plus.setAttribute('aria-label', 'More ' + label);
     minus.onclick = () => { if (get() > 0) { set(get() - 1); onChange(); } };
     plus.onclick = () => { if (canUp()) { set(get() + 1); onChange(); } };
     box.append(minus, val, plus);
-    row.append(box);
     const n = el('span', 'note');
-    row.append(n);
-    row.update = () => { val.textContent = get(); minus.disabled = get() <= 0; plus.disabled = !canUp(); n.innerHTML = note(); };
-    return row;
+    cell.append(box, n);
+    cell.update = () => { val.textContent = get(); minus.disabled = get() <= 0; plus.disabled = !canUp(); n.innerHTML = note(); };
+    return cell;
+  }
+
+  // A row of buttons where one is chosen
+  function segment(options, get, set) {
+    const seg = el('span', 'seg');
+    for (const o of options) {
+      const b = el('button', '', o.label);
+      if (o.title) b.title = o.title;
+      b.onclick = () => { set(o.value); onChange(); };
+      b.value = o.value;
+      seg.append(b);
+    }
+    seg.update = rec => {
+      for (const b of seg.children) {
+        b.classList.toggle('on', String(get()) === b.value);
+        b.classList.toggle('rec', rec !== undefined && String(rec) === b.value);
+      }
+    };
+    return seg;
   }
 
   const cards = [];
 
+  // One row per sector: name, supply line, trains, trucks, engineers, bombers, mix, then the advice
   function buildSectors() {
     const wrap = $('#sectors');
     wrap.textContent = '';
     cards.length = 0;
     st.sectors.forEach(sec => {
       const def = Sim.sectorDef(sec.id);
-      const card = el('section', 'card');
-      card.style.setProperty('--sec', def.colour);
-      const head = el('div', 'card-head');
-      head.append(el('h3', '', def.name));
-      const status = el('span', 'status');
-      head.append(status);
-      const posture = el('span', 'seg');
-      const adv = el('button', '', 'Advance'), hold = el('button', '', 'Hold');
-      adv.onclick = () => { sec.posture = 'advance'; onChange(); };
-      hold.onclick = () => { sec.posture = 'hold'; onChange(); };
-      adv.title = 'Push east. Uses the most fuel and ammo';
-      hold.title = 'Dig in. Uses far less, so stocks build up';
-      posture.append(adv, hold);
-      head.append(posture);
-      card.append(head);
+      const row = el('section', 'brow card');
+      row.style.setProperty('--sec', def.colour);
 
-      const pipe = el('div', 'pipe');
-      const advice = el('div', 'advice');
-      card.append(pipe, advice);
+      const name = el('div', 'c-name');
+      name.append(el('h3', '', def.name));
+      const status = el('span', 'status');
+      const posture = segment([
+        { value: 'advance', label: 'Advance', title: 'Push east. Uses the most fuel and ammo' },
+        { value: 'hold', label: 'Hold', title: 'Dig in. Uses far less, so stocks build up' },
+      ], () => sec.posture, v => sec.posture = v);
+      const forces = el('div', 'forces');
+      name.append(status, posture, forces);
+
+      const pipe = el('div', 'cell c-pipe pipe');
 
       const free = (field, total) => Sim.freePool(st, field, total) > 0;
-      const rows = [
-        stepper('🚂 Trains', () => sec.trains, v => sec.trains = v, () => Sim.freeTrains(st) > 0, () => {
-          const f = window.Game.forecast[sec.id];
-          const short = f && f.trains + 0.05 < sec.trains + troopFor(sec.id);
-          return `${t(sec.trains * TRAIN_TONS)} t a day` + (short ? ` · <span class="warn">line only takes ${f.trains.toFixed(1)}</span>` : '');
-        }),
-        stepper('🚚 Trucks', () => sec.trucks, v => sec.trucks = v, () => free('trucks', TRUCK_COLUMNS), () =>
-          `carry ${t(Sim.truckCapacity(st, sec))} t a day over ${t(Math.max(20, Sim.gap(st, sec)))} km`),
-        stepper('🛠️ Engineers', () => sec.engineers, v => sec.engineers = v, () => free('engineers', ENGINEERS), () => engineerNote(sec)),
-        stepper('✈️ Bombers', () => sec.bombers, v => sec.bombers = v, () => Sim.freePool(st, 'bombers', BOMBER_GROUPS - st.bombersLost) > 0, () =>
-          sec.bombers ? `burn ${t(sec.bombers * BOMBER_FUEL)} t of fuel a day` : 'none'),
-      ];
-      for (const r of rows) card.append(r);
+      const trains = stepper('🚂 Trains', () => sec.trains, v => sec.trains = v, () => Sim.freeTrains(st) > 0, () => {
+        const f = window.Game.forecast[sec.id];
+        const short = f && f.trains + 0.05 < sec.trains + troopFor(sec.id);
+        return `${t(sec.trains * TRAIN_TONS)} t a day` + (short ? `<br><span class="warn">line takes ${f.trains.toFixed(1)}</span>` : '');
+      });
+      const trucks = stepper('🚚 Trucks', () => sec.trucks, v => sec.trucks = v, () => free('trucks', TRUCK_COLUMNS), () =>
+        `${t(Sim.truckCapacity(st, sec))} t a day<br>over ${t(Math.max(20, Sim.gap(st, sec)))} km`);
+      const engineers = stepper('🛠️ Engineers', () => sec.engineers, v => sec.engineers = v, () => free('engineers', ENGINEERS), () => engineerNote(sec));
+      const focus = segment(Object.keys(ENGINEER_FOCUS).map(k => ({ value: k, label: ENGINEER_FOCUS[k].name, title: ENGINEER_FOCUS[k].hint })),
+        () => sec.focus, v => sec.focus = v);
+      engineers.insertBefore(focus, engineers.lastChild);
+      engineers.classList.add('wide');
+      const bombers = stepper('✈️ Bombers', () => sec.bombers, v => sec.bombers = v, () => Sim.freePool(st, 'bombers', BOMBER_GROUPS - st.bombersLost) > 0, () =>
+        sec.bombers ? `burn ${t(sec.bombers * BOMBER_FUEL)} t<br>of fuel a day` : 'none');
 
-      // Engineer focus
-      const focus = el('div', 'row');
-      focus.append(el('span', 'lbl', '↳ Focus'));
-      const fseg = el('span', 'seg small');
-      for (const k in ENGINEER_FOCUS) {
-        const b = el('button', '', ENGINEER_FOCUS[k].name);
-        b.title = ENGINEER_FOCUS[k].hint;
-        b.dataset.k = k;
-        b.onclick = () => { sec.focus = k; onChange(); };
-        fseg.append(b);
-      }
-      focus.append(fseg);
-      card.append(focus);
-
-      // Fuel and ammo share of the supply trains
-      const mix = el('div', 'row');
-      mix.append(el('span', 'lbl', '⛽ / 💥 mix'));
-      const slider = el('input');
-      slider.type = 'range'; slider.min = 0; slider.max = 100; slider.step = 5;
-      slider.setAttribute('aria-label', 'Fuel share of supply trains');
-      slider.oninput = () => { sec.fuelMix = +slider.value; onChange(); };
+      const mixCell = el('div', 'cell wide');
+      mixCell.dataset.label = '⛽ / 💥 Mix';
+      const mix = segment(MIXES.map(m => ({ value: m.fuel, label: m.label, title: `${m.fuel}% fuel, ${100 - m.fuel}% ammo` })),
+        () => sec.fuelMix, v => sec.fuelMix = v);
       const mixNote = el('span', 'note');
-      const match = el('button', 'tiny', 'Match needs');
-      match.title = 'Set the mix to what this sector uses, plus bomber and truck fuel';
-      match.onclick = () => { sec.fuelMix = matchMix(sec); onChange(); };
-      mix.append(slider, mixNote, match);
-      card.append(mix);
+      mixCell.append(mix, mixNote);
 
-      const forces = el('div', 'forces');
-      card.append(forces);
-
-      wrap.append(card);
-      cards.push({ sec, status, adv, hold, pipe, advice, rows, fseg, slider, mixNote, forces });
+      const advice = el('div', 'c-advice');
+      row.append(name, pipe, trains, trucks, engineers, bombers, mixCell, advice);
+      wrap.append(row);
+      cards.push({ sec, status, posture, forces, pipe, steppers: [trains, trucks, engineers, bombers], focus, mix, mixNote, advice });
     });
   }
 
@@ -120,11 +113,12 @@ const UI = (() => {
     return st.queue.filter(q => q.sector === id).reduce((a, q) => a + UNIT_TYPES[q.type].trains - q.loaded, 0);
   }
 
+  // The mix button closest to what the sector burns, bombers and truck fuel included
   function matchMix(sec) {
     const n = Sim.needs(sec);
     const extraFuel = sec.bombers * BOMBER_FUEL + (n.fuel + n.ammo) * Math.max(20, Sim.gap(st, sec)) * TRUCK_FUEL;
-    const f = n.fuel + extraFuel;
-    return Math.max(0, Math.min(100, Math.round(f / (f + n.ammo) * 20) * 5));
+    const share = 100 * (n.fuel + extraFuel) / (n.fuel + extraFuel + n.ammo);
+    return MIXES.reduce((a, b) => (Math.abs(b.fuel - share) < Math.abs(a.fuel - share) ? b : a)).fuel;
   }
 
   function engineerNote(sec) {
@@ -223,7 +217,7 @@ const UI = (() => {
       }
       return `: <b>${NODES[c].name}</b> station is at ${Math.round(st.nodes[c].cond)}%`;
     };
-    if (f.lineShort && f.trainRatio < 1) return ['bad', `🚧 The line only takes <b>${f.lineTakes.toFixed(1)}</b> trains a day${choke()}. Set engineers to <b>Repair</b> so more get through.`];
+    if (f.lineShort && f.trainRatio < 1) return ['bad', `🚧 The line only takes <b>${f.lineTakes.toFixed(1)}</b> trains a day${choke()}. Set engineers to <b>Station 🚉</b> so more get through.`];
     const depotDays = Math.min(f.depotDaysF, f.depotDaysA);
     if (f.truckRatio < 1 && (f.truckRatio <= f.trainRatio || depotDays > 2)) {
       const more = Math.ceil((f.need - f.truckCap) / Math.max(1, f.perTruck));
@@ -233,9 +227,9 @@ const UI = (() => {
       const more = Math.ceil((f.trainNeed - f.trainTons) / TRAIN_TONS);
       return [tone(f.trainRatio), `🚂 Trains bring ${t(f.trainTons)} t a day; this sector needs about ${t(f.trainNeed)} with truck and bomber fuel. Add <b>${more}</b> train${more > 1 ? 's' : ''}${source(sec, 'trains', more)}.`];
     }
-    if (f.lineShort) return ['meh', `🚧 Only <b>${f.lineTakes.toFixed(1)}</b> of your trains get through${choke()}. Move the extra trains to another sector, or set engineers to <b>Repair</b>.`];
-    if (f.depotDaysA < 1 && f.depotDaysF > 3) return ['meh', '💥 The depot is nearly out of <b>ammo</b> but has spare fuel. Move the mix toward ammo, or press <b>Match needs</b>.'];
-    if (f.depotDaysF < 1 && f.depotDaysA > 3) return ['meh', '⛽ The depot is nearly out of <b>fuel</b> but has spare ammo. Move the mix toward fuel, or press <b>Match needs</b>.'];
+    if (f.lineShort) return ['meh', `🚧 Only <b>${f.lineTakes.toFixed(1)}</b> of your trains get through${choke()}. Move the extra trains to another sector, or set engineers to <b>Station 🚉</b>.`];
+    if (f.depotDaysA < 1 && f.depotDaysF > 3) return ['meh', '💥 The depot is nearly out of <b>ammo</b> but has spare fuel. Pick the mix underlined in green, or one more toward 💥.'];
+    if (f.depotDaysF < 1 && f.depotDaysA > 3) return ['meh', '⛽ The depot is nearly out of <b>fuel</b> but has spare ammo. Pick the mix underlined in green, or one more toward ⛽.'];
     if (sec.depot.fuel + sec.depot.ammo > 9000) return ['meh', '🎯 This depot is very full: a magnet for Soviet bombers. Send some of its trains to a sector that needs them.'];
     if (sec.limit === 'resistance') return ['meh', '🛡️ Supply is fine; Soviet resistance is the brake. Add <b>bombers</b>, or send <b>artillery</b> or a <b>panzer division</b>.'];
     if (sec.limit === 'mobility') {
@@ -254,9 +248,15 @@ const UI = (() => {
     return `
       <div class="pipe-node"><b>Warsaw</b><small>base</small></div>
       ${seg(f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineShort ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`)}
-      <div class="pipe-node" title="Railhead depot"><b>${NODES[rh.node].name}</b><small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
+      <div class="pipe-node" title="Railhead depot: trains unload here${rh.laid >= 1 ? `, ${t(rh.laid)} km of converted track past ${NODES[rh.node].name}` : ''}"><b>${NODES[rh.node].name}</b>${rh.laid >= 1 ? `<small>+${t(rh.laid)} km past it</small>` : ''}<small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
       ${seg(f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`)}
-      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽')}</small><small>${days(f.daysA, '💥')}</small><small>uses ${t(f.need)}</small></div>`;
+      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽')}</small><small>${days(f.daysA, '💥')}</small><small>uses ${t(f.need)}/d</small></div>`;
+  }
+
+  function freeBadge(id, n) {
+    const e = $(id);
+    e.textContent = n + ' free';
+    e.classList.toggle('have', n > 0);
   }
 
   function update() {
@@ -264,29 +264,31 @@ const UI = (() => {
     $('#date').textContent = date;
     $('#day').textContent = `Day ${Math.min(st.day, LAST_DAY)} of ${LAST_DAY}`;
     $('#objectives').innerHTML = OBJECTIVES.map(id => `<span class="obj ${st.nodes[id].captured ? 'done' : ''}">${st.nodes[id].captured ? '✅' : '🎯'} ${NODES[id].name}</span>`).join('');
-    const ft = Sim.freeTrains(st), fk = Sim.freePool(st, 'trucks', TRUCK_COLUMNS), fe = Sim.freePool(st, 'engineers', ENGINEERS), fb = Sim.freePool(st, 'bombers', BOMBER_GROUPS - st.bombersLost);
-    $('#pools').innerHTML = `<b>Free to assign:</b> <span class="${ft ? 'have' : ''}">🚂 ${ft} trains</span> <span class="${fk ? 'have' : ''}">🚚 ${fk} trucks</span> <span class="${fe ? 'have' : ''}">🛠️ ${fe} engineers</span> <span class="${fb ? 'have' : ''}">✈️ ${fb} bombers</span>`;
+    freeBadge('#free-trains', Sim.freeTrains(st));
+    freeBadge('#free-trucks', Sim.freePool(st, 'trucks', TRUCK_COLUMNS));
+    freeBadge('#free-engineers', Sim.freePool(st, 'engineers', ENGINEERS));
+    freeBadge('#free-bombers', Sim.freePool(st, 'bombers', BOMBER_GROUPS - st.bombersLost));
 
     for (const c of cards) {
       const { sec } = c;
-      c.status.textContent = sec.status || '';
+      c.status.textContent = sec.status || 'Ready';
       c.status.className = 'status ' + (/Stalled|Pushed|out of/.test(sec.status) ? 'bad' : /Slowed/.test(sec.status) ? 'meh' : 'ok');
-      c.adv.classList.toggle('on', sec.posture === 'advance');
-      c.hold.classList.toggle('on', sec.posture === 'hold');
+      c.posture.update();
       c.pipe.innerHTML = pipeHTML(sec);
       const [adviceTone, adviceText] = advise(sec);
-      c.advice.className = 'advice ' + adviceTone;
+      c.advice.className = 'c-advice ' + adviceTone;
       c.advice.innerHTML = adviceText;
-      for (const r of c.rows) r.update();
-      for (const b of c.fseg.children) b.classList.toggle('on', b.dataset.k === sec.focus);
-      c.slider.value = sec.fuelMix;
-      c.mixNote.textContent = `${sec.fuelMix}% fuel`;
-      const forces = UNIT_ORDER.map(u => `<span title="${UNIT_TYPES[u].name}">${UNIT_TYPES[u].short} <b>${sec.forces[u]}</b></span>`).join(' ');
+      for (const s of c.steppers) s.update();
+      c.focus.update();
+      const rec = matchMix(sec);
+      c.mix.update(rec);
+      c.mixNote.innerHTML = sec.fuelMix === rec ? 'matches what it uses' : `<span class="warn">green line</span> matches what it uses`;
+      const forces = UNIT_ORDER.map(u => `<span title="${UNIT_TYPES[u].name}">${UNIT_TYPES[u].short} <b>${sec.forces[u]}</b></span>`).join(' · ');
       const coming = [
-        ...st.queue.filter(q => q.sector === sec.id).map(q => `${UNIT_TYPES[q.type].short} loading ${q.loaded > 0 ? `(${q.loaded.toFixed(1)}/${UNIT_TYPES[q.type].trains})` : ''}`),
-        ...st.marching.filter(m => m.sector === sec.id).map(m => `${UNIT_TYPES[m.type].short} marching, ${Math.max(1, m.day - st.day + 1)} d`),
+        ...st.queue.filter(q => q.sector === sec.id).map(q => `${UNIT_TYPES[q.type].short} loading`),
+        ...st.marching.filter(m => m.sector === sec.id).map(m => `${UNIT_TYPES[m.type].short} in ${Math.max(1, m.day - st.day + 1)} d`),
       ];
-      c.forces.innerHTML = `<b>Forces</b> ${forces}${coming.length ? ` · <span class="muted">on the way: ${coming.join(', ')}</span>` : ''}`;
+      c.forces.innerHTML = forces + (coming.length ? `<br>coming: ${coming.join(', ')}` : '');
     }
 
     // Reserves at Warsaw
@@ -299,8 +301,8 @@ const UI = (() => {
       if (!units.length) continue;
       const T = UNIT_TYPES[type];
       const row = el('div', 'unit');
-      row.append(el('span', '', `<b>${units.length} × ${T.name}</b> <span class="muted">each needs ${T.trains} trains, then ${T.need.advance.fuel + T.need.advance.ammo} t a day</span>`));
-      const btns = el('span', 'send');
+      row.append(el('div', '', `<b>${units.length} × ${T.name}</b> <span class="muted">${T.trains} trains each, then ${T.need.advance.fuel + T.need.advance.ammo} t a day</span>`));
+      const btns = el('div', 'send');
       for (const sec of st.sectors) {
         const b = el('button', '', '→ ' + Sim.sectorDef(sec.id).name);
         b.style.setProperty('--sec', Sim.sectorDef(sec.id).colour);
@@ -314,7 +316,7 @@ const UI = (() => {
     }
     for (const q of st.queue) {
       const row = el('div', 'unit queued');
-      row.append(el('span', '', `<b>${UNIT_TYPES[q.type].name}</b> <span class="muted">loading for ${Sim.sectorDef(q.sector).name}</span>`));
+      row.append(el('span', '', `<b>${UNIT_TYPES[q.type].name}</b> <span class="muted">loading for ${Sim.sectorDef(q.sector).name}</span> `));
       if (q.loaded === 0) {
         const b = el('button', 'tiny', 'Cancel');
         b.onclick = () => { Sim.cancelUnit(st, q.id); onChange(); };
@@ -332,19 +334,41 @@ const UI = (() => {
     $('#end-btn').disabled = st.won || st.lost;
   }
 
+  // Station hover: condition, traffic, and the stocks held there
   function tooltip(id, x, y) {
     const tip = $('#tip');
     if (!id) { tip.hidden = true; return; }
     const n = st.nodes[id], N = NODES[id];
-    const lines = [`<b>${N.name}</b>`];
-    if (id === 'warsaw') lines.push('Supply base. Trains start here.');
-    else if (!n.captured) lines.push('Held by the Soviets');
-    else lines.push(`Station condition <b>${Math.round(n.cond)}%</b>`, `Handles ${(N.cap * n.cond / 100).toFixed(1)} of ${N.cap} trains a day`);
-    if (OBJECTIVES.includes(id)) lines.push('🎯 Objective');
+    const lines = [`<b>${N.name}</b>${OBJECTIVES.includes(id) ? ' 🎯 objective' : ''}`];
+    if (id === 'warsaw') {
+      lines.push(`Supply base: ${TRAINS_PER_DAY} trains a day start here`);
+      const waiting = UNIT_ORDER.map(u => [u, st.reserves.filter(r => r.type === u).length]).filter(([, k]) => k);
+      lines.push(waiting.length ? 'Reserves: ' + waiting.map(([u, k]) => `${k} ${UNIT_TYPES[u].short}`).join(', ') : 'No reserves waiting');
+    } else if (!n.captured) {
+      lines.push('Held by the Soviets');
+      for (const sec of st.sectors) {
+        const i = Sim.sectorDef(sec.id).line.indexOf(id);
+        if (i > 0) lines.push(`${t(Sim.LINES[sec.id][i] - sec.front)} km ahead of the ${Sim.sectorDef(sec.id).name} front`);
+      }
+    } else {
+      // Trains a day through here, against what the station can take
+      let through = 0;
+      for (const sec of st.sectors) {
+        const i = Sim.sectorDef(sec.id).line.indexOf(id);
+        if (i > 0 && i <= Sim.railhead(st, sec).index) through += (window.Game.forecast[sec.id] || { trains: 0 }).trains;
+      }
+      lines.push(`Condition <b>${Math.round(n.cond)}%</b> · trains ${through.toFixed(1)} of ${(N.cap * n.cond / 100).toFixed(1)} a day`);
+      const depots = st.sectors.filter(sec => Sim.railhead(st, sec).node === id);
+      for (const sec of depots) {
+        const rh = Sim.railhead(st, sec);
+        lines.push(`<b>${Sim.sectorDef(sec.id).name} depot</b>${rh.laid >= 1 ? ` (at the end of the track, ${t(rh.laid)} km on)` : ''}: ⛽ ${t(sec.depot.fuel)} t · 💥 ${t(sec.depot.ammo)} t`);
+      }
+      if (!depots.length) lines.push('No depot here: trains pass through');
+    }
     tip.innerHTML = lines.join('<br>');
     tip.hidden = false;
-    tip.style.left = Math.min(x + 14, window.innerWidth - 220) + 'px';
-    tip.style.top = (y + 14) + 'px';
+    tip.style.left = Math.min(x + 14, window.innerWidth - 270) + 'px';
+    tip.style.top = Math.min(y + 14, window.innerHeight - 120) + 'px';
   }
 
   function result() {

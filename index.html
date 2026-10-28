@@ -12,19 +12,22 @@
     --bg: #e6dcc3; --panel: #f6efdd; --ink: #2b2418; --muted: #6e6350; --line: #cbbd9a;
     --good: #3f7a3a; --warn: #b4651a; --bad: #a3291c; --accent: #2f4f6f;
     --fuel: #c47a1a; --ammo: #5a5a5a;
+    /* The board's columns: sector, supply line, trains, trucks, engineers, bombers, mix */
+    --cols: 150px minmax(390px, 2.4fr) minmax(104px, .5fr) minmax(104px, .55fr) minmax(200px, .9fr) minmax(104px, .5fr) minmax(214px, .9fr);
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
   button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fffaf0; color: var(--ink); border-radius: 6px; padding: 3px 9px; }
   button:hover:not(:disabled) { border-color: var(--ink); }
   button:disabled { opacity: .4; cursor: default; }
-  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .muted { color: var(--muted); }
   .good { color: var(--good); } .warn { color: var(--warn); font-weight: 600; }
 
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 10px 16px; background: #2b2418; color: #f2e8cf; }
-  header h1 { margin: 0; font: 24px "Special Elite", monospace; letter-spacing: 2px; }
-  header .when { display: flex; flex-direction: column; line-height: 1.2; }
+  header { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; padding: 7px 16px; background: #2b2418; color: #f2e8cf; }
+  header h1 { margin: 0; font: 22px "Special Elite", monospace; letter-spacing: 2px; }
+  header .when { display: flex; flex-direction: column; line-height: 1.15; }
   header #date { font: 15px "Special Elite", monospace; }
   header #day { font-size: 12px; opacity: .75; }
   #objectives { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -37,43 +40,76 @@
   header #help-btn:hover { background: #d98a24; }
   #ver { font-size: 11px; opacity: .55; }
 
-  main { display: grid; grid-template-columns: minmax(0, 1fr) 470px; gap: 12px; padding: 12px 16px 24px; max-width: 1700px; margin: 0 auto; }
-  .mapwrap { min-width: 0; }
-  #map { width: 100%; display: block; border-radius: 6px; box-shadow: 0 2px 10px rgba(40,30,15,.25); background: #efe3c4; touch-action: manipulation; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin: 6px 2px 0; }
+  /* Top: the map with the report and reserves beside it */
+  #top { flex: 1 1 0; min-height: 300px; display: flex; gap: 10px; padding: 8px 16px 0; }
+  .mapwrap { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+  .mapbox { position: relative; line-height: 0; flex: 1 1 auto; min-height: 0; width: 100%; display: flex; justify-content: center; }
+  .mapbox .frame { position: relative; }
+  #map { display: block; border-radius: 6px; box-shadow: 0 2px 10px rgba(40,30,15,.25); background: #efe3c4; touch-action: manipulation; }
+  .map-buttons { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; line-height: 1.2; }
+  #end-btn { padding: 6px 16px; font: 18px "Special Elite", monospace; background: #2b2418; color: #f6efdd; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  #end-btn span { display: block; font: 11px system-ui, sans-serif; opacity: .6; }
+  #end-btn:hover:not(:disabled) { background: #43382a; }
+  #help-btn2 { width: 40px; padding: 0; font: bold 20px Georgia, serif; background: #c47a1a; color: #fff; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  #help-btn2:hover { background: #d98a24; }
+  .legend { flex: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 14px; font-size: 12px; color: var(--muted); margin: 4px 2px 0; }
   .legend i { display: inline-block; vertical-align: middle; margin-right: 4px; }
   .lg-track { width: 22px; height: 4px; background: #2b2418; }
   .lg-broad { width: 22px; height: 0; border-top: 3px dashed rgba(120,40,30,.7); }
   .lg-front { width: 22px; height: 4px; background: rgba(150,35,25,.85); }
 
-  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
-  .box h2 { margin: 0 0 6px; font: 15px "Special Elite", monospace; }
-  #report { margin: 0; padding-left: 0; list-style: none; }
+  #side { flex: 0 0 280px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; min-height: 0; overflow: auto; }
+  .box h2 { margin: 0 0 4px; font: 14px "Special Elite", monospace; }
+  .box.report { flex: 1 1 50%; }
+  .box.reserves { flex: 1 1 50%; }
+  #report { margin: 0; padding-left: 0; list-style: none; font-size: 13px; }
   #report li { padding: 2px 0; border-bottom: 1px dotted var(--line); }
   #report li.intel { color: var(--bad); font-weight: 600; }
+  #reserves .unit { padding: 4px 0; border-bottom: 1px dotted var(--line); font-size: 13px; }
+  .send { display: flex; gap: 4px; margin-top: 3px; }
+  .send button { border-left: 4px solid var(--sec); font-size: 12px; padding: 1px 7px; }
+  .res-hint { margin: 0 0 4px; font-size: 12px; color: var(--warn); }
+  button.tiny { padding: 1px 7px; font-size: 12px; }
 
-  aside { min-width: 0; }
-  #pools { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; }
-  #pools span { color: var(--muted); }
-  #pools span.have { color: var(--good); font-weight: 600; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--sec); border-radius: 8px; padding: 8px 12px; margin-top: 10px; }
-  .card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .card-head h3 { margin: 0; font: 17px "Special Elite", monospace; color: var(--sec); }
-  .status { font-size: 12px; padding: 1px 8px; border-radius: 10px; }
+  /* Bottom: one row per sector, with the free counts above each resource */
+  #board { flex: none; padding: 8px 16px 10px; }
+  .brow { display: grid; grid-template-columns: var(--cols); column-gap: 10px; align-items: start; }
+  .brow.head { font-size: 11.5px; color: var(--muted); padding: 0 10px 3px 16px; align-items: end; }
+  .brow.head b { color: var(--ink); }
+  .brow.head > span { white-space: nowrap; }
+  .free { display: inline-block; margin-left: 4px; padding: 0 7px; border-radius: 9px; background: rgba(40,30,15,.08); font-weight: 600; }
+  .free.have { background: var(--good); color: #fff; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--sec); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; row-gap: 3px; }
+  .c-name { grid-row: span 2; display: flex; flex-direction: column; gap: 3px; }
+  .c-name h3 { margin: 0; font: 17px "Special Elite", monospace; color: var(--sec); }
+  .status { font-size: 11.5px; padding: 0 7px; border-radius: 10px; align-self: flex-start; }
   .status.ok { background: rgba(63,122,58,.15); color: var(--good); }
   .status.meh { background: rgba(196,122,26,.18); color: var(--warn); }
   .status.bad { background: rgba(163,41,28,.15); color: var(--bad); font-weight: 600; }
-  .seg { margin-left: auto; display: inline-flex; }
-  .seg button { border-radius: 0; margin-left: -1px; }
-  .seg button:first-child { border-radius: 6px 0 0 6px; }
+  .forces { font-size: 12px; color: var(--muted); line-height: 1.3; }
+  .forces b { color: var(--ink); }
+  .c-advice { grid-column: 2 / -1; font-size: 13px; padding: 3px 8px; border-radius: 6px; }
+  .c-advice.ok { background: rgba(63,122,58,.1); }
+  .c-advice.meh { background: rgba(196,122,26,.14); }
+  .c-advice.bad { background: rgba(163,41,28,.12); }
+  .cell { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .note { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
+
+  .seg { display: inline-flex; }
+  .seg button { border-radius: 0; margin-left: -1px; padding: 2px 7px; font-size: 12px; white-space: nowrap; }
+  .seg button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
   .seg button:last-child { border-radius: 0 6px 6px 0; }
   .seg button.on { background: var(--ink); color: #f6efdd; border-color: var(--ink); }
-  .seg.small { margin-left: 0; }
-  .seg.small button { padding: 1px 7px; font-size: 12px; }
-  .pipe { display: grid; grid-template-columns: minmax(54px, .8fr) minmax(70px, 1fr) minmax(86px, 1.2fr) minmax(70px, 1fr) minmax(80px, 1.1fr); align-items: center; margin: 14px 0 6px; font-size: 12px; }
-  .pipe-node { background: #fffaf0; border: 1.5px solid var(--ink); border-radius: 6px; padding: 3px 5px; line-height: 1.25; min-width: 0; }
+  .seg button.rec:not(.on) { box-shadow: inset 0 -3px 0 var(--good); }
+  .step { display: inline-flex; align-items: center; gap: 4px; }
+  .step button { width: 26px; height: 26px; padding: 0; font-size: 16px; line-height: 1; }
+  .step b { min-width: 22px; text-align: center; font-size: 15px; }
+
+  .pipe { display: grid; grid-template-columns: minmax(48px, .7fr) minmax(66px, 1fr) minmax(84px, 1.2fr) minmax(66px, 1fr) minmax(64px, .9fr); align-items: center; margin-top: 10px; font-size: 12px; }
+  .pipe-node { background: #fffaf0; border: 1.5px solid var(--ink); border-radius: 6px; padding: 2px 5px; line-height: 1.2; min-width: 0; }
   .pipe-node b { display: block; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pipe-node small { display: block; font-size: 10.5px; color: var(--muted); }
+  .pipe-node small { display: block; font-size: 10.5px; color: var(--muted); white-space: nowrap; }
   .pipe-seg { position: relative; text-align: center; padding: 0 2px; min-width: 0; }
   .pipe-seg i { display: block; height: 6px; margin: 2px 0; position: relative; }
   .pipe-seg i::after { content: ''; position: absolute; right: -2px; top: 50%; transform: translateY(-50%); border: 7px solid transparent; border-left: 9px solid; border-right: 0; }
@@ -82,39 +118,9 @@
   .pipe-seg.bad i { background: var(--bad); height: 3px; } .pipe-seg.bad i::after { border-left-color: var(--bad); }
   .pipe-seg .flow { display: block; font-weight: 600; white-space: nowrap; }
   .pipe-seg .sub { display: block; font-size: 10.5px; color: var(--muted); white-space: nowrap; }
-  .pipe-seg .neck { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; background: var(--bad); border-radius: 8px; padding: 0 6px; white-space: nowrap; }
-  .advice { font-size: 13px; padding: 5px 8px; border-radius: 6px; margin-bottom: 4px; }
-  .advice.ok { background: rgba(63,122,58,.1); }
-  .advice.meh { background: rgba(196,122,26,.14); }
-  .advice.bad { background: rgba(163,41,28,.12); }
-  .stocks { display: flex; flex-wrap: wrap; gap: 2px 14px; }
-  .bar { display: inline-block; width: 44px; height: 7px; background: rgba(40,30,15,.15); border-radius: 4px; overflow: hidden; vertical-align: middle; }
-  .bar i { display: block; height: 100%; }
-  .bar.fuel i { background: var(--fuel); } .bar.ammo i { background: var(--ammo); }
-  .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; flex-wrap: wrap; }
-  .row .lbl { width: 92px; flex: none; font-size: 13px; }
-  .step { display: inline-flex; align-items: center; gap: 4px; }
-  .step button { width: 28px; height: 28px; padding: 0; font-size: 16px; line-height: 1; }
-  .step b { min-width: 22px; text-align: center; font-size: 15px; }
-  .note { font-size: 12px; color: var(--muted); flex: 1 1 140px; min-width: 0; }
-  input[type=range] { width: 120px; accent-color: var(--fuel); }
-  button.tiny { padding: 1px 7px; font-size: 12px; }
-  .forces { font-size: 13px; border-top: 1px dotted var(--line); margin-top: 4px; padding-top: 4px; }
-  .forces span { margin-right: 6px; }
+  .pipe-seg .neck { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; background: var(--bad); border-radius: 8px; padding: 0 6px; white-space: nowrap; line-height: 1.3; }
 
-  #reserves .unit { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; padding: 5px 0; border-bottom: 1px dotted var(--line); font-size: 13px; }
-  .send { display: inline-flex; gap: 4px; }
-  .send button { border-left: 4px solid var(--sec); font-size: 12px; padding: 2px 7px; }
-  .topbar { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; align-items: stretch; background: var(--bg); padding-bottom: 2px; }
-  .topbar #pools { flex: 1; }
-  #end-btn { flex: none; padding: 8px 16px; font: 18px "Special Elite", monospace; background: #2b2418; color: #f6efdd; border: none; border-radius: 8px; }
-  #help-btn2 { flex: none; width: 40px; padding: 0; font: bold 20px Georgia, serif; background: #c47a1a; color: #fff; border: none; border-radius: 8px; }
-  #help-btn2:hover { background: #d98a24; }
-  #end-btn span { display: block; font: 11px system-ui, sans-serif; opacity: .6; }
-  #end-btn:hover:not(:disabled) { background: #43382a; }
-  .res-hint { margin: 0 0 4px; font-size: 13px; color: var(--warn); }
-
-  #tip { position: fixed; z-index: 20; background: #fffaf0; border: 1px solid var(--ink); border-radius: 6px; padding: 6px 9px; font-size: 13px; pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,.2); max-width: 210px; }
+  #tip { position: fixed; z-index: 20; background: #fffaf0; border: 1px solid var(--ink); border-radius: 6px; padding: 6px 9px; font-size: 13px; pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,.2); max-width: 260px; }
 
   .modal { position: fixed; inset: 0; z-index: 30; background: rgba(30,22,12,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
   .modal[hidden] { display: none; }
@@ -124,18 +130,30 @@
   .modal li { margin: 3px 0; }
   .modal .go { margin-top: 10px; padding: 8px 18px; background: #2b2418; color: #f6efdd; border: none; font-size: 15px; }
 
-  @media (max-width: 1100px) {
-    main { grid-template-columns: 1fr; }
+  /* Smaller screens: scroll the page, map on top, side boxes and sectors below */
+  @media (max-width: 1250px) {
+    body { min-height: 0; }
+    #top { flex: none; flex-direction: column; min-height: 0; }
+    .mapbox { flex: none; }
+    #side { flex: none; flex-direction: row; flex-wrap: wrap; }
+    #side .box { flex: 1 1 280px; max-height: 260px; }
+    .brow { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 6px; }
+    .brow .c-name, .brow .c-pipe, .brow .c-advice { grid-column: 1 / -1; grid-row: auto; }
+    .c-name { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+    .brow.head { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 0 4px; }
+    .brow.head > span:empty, .brow.head .h-pipe, .brow.head .h-mix { display: none; }
+    .cell[data-label]::before { content: attr(data-label); font-size: 12px; color: var(--muted); }
   }
   @media (max-width: 520px) {
-    header { padding: 8px 12px; }
-    .pipe { font-size: 10.5px; grid-template-columns: 46px minmax(56px, 1fr) minmax(70px, 1.2fr) minmax(56px, 1fr) minmax(58px, 1fr); }
+    header { padding: 6px 12px; }
+    #top, #board { padding-left: 10px; padding-right: 10px; }
+    .brow .cell.wide { grid-column: 1 / -1; }
+    .pipe { font-size: 10.5px; grid-template-columns: 44px minmax(54px, 1fr) minmax(68px, 1.2fr) minmax(54px, 1fr) minmax(56px, 1fr); }
     .pipe-node { padding: 2px 3px; }
     .pipe-node b { font-size: 10.5px; }
     .pipe-node small, .pipe-seg .sub { font-size: 9.5px; }
     .pipe-seg .flow { white-space: normal; line-height: 1.15; }
-    main { padding: 8px 12px 20px; }
-    .row .lbl { width: 84px; }
+    #end-btn { padding: 4px 10px; font-size: 15px; }
   }
 </style>
 </head>
@@ -149,38 +167,52 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v3</span>
+    <span id="ver">v7</span>
   </div>
 </header>
 
-<main>
+<div id="top">
   <div class="mapwrap">
-    <canvas id="map" aria-label="Staff map of the front, from Warsaw to Smolensk"></canvas>
+    <div class="mapbox">
+      <div class="frame">
+        <canvas id="map" aria-label="Staff map of the front, from Warsaw to Smolensk"></canvas>
+        <div class="map-buttons">
+          <button id="help-btn2" title="How to play (H)" aria-label="How to play">?</button>
+          <button id="end-btn">End day ▶ <span>Enter</span></button>
+        </div>
+      </div>
+    </div>
     <div class="legend">
       <span><i class="lg-track"></i>Converted track</span>
       <span><i class="lg-broad"></i>Russian broad gauge</span>
       <span><i class="lg-front"></i>Front line</span>
-      <span>⚑ Railhead · ■ big station · bar = condition · <b style="color:#a3291c">?</b> reported Soviet build-up</span>
+      <span>⚑ Railhead · ■ big station · bar = condition · <b style="color:#a3291c">?</b> reported Soviet build-up · hover a station for its stocks</span>
     </div>
-    <div class="box">
+  </div>
+  <div id="side">
+    <div class="box report">
       <h2>Yesterday's report</h2>
       <ul id="report"></ul>
     </div>
-    <div class="box">
+    <div class="box reserves">
       <h2>Reserves at Warsaw</h2>
       <div id="reserves"></div>
     </div>
   </div>
+</div>
 
-  <aside>
-    <div class="topbar">
-      <div id="pools"></div>
-      <button id="help-btn2" title="How to play (H)" aria-label="How to play">?</button>
-      <button id="end-btn">End day ▶ <span>Enter</span></button>
-    </div>
-    <div id="sectors"></div>
-  </aside>
-</main>
+<div id="board">
+  <div class="brow head">
+    <span></span>
+    <span class="h-pipe">Supply line: Warsaw → railhead → front</span>
+    <span>🚂 Trains <span class="free" id="free-trains"></span></span>
+    <span>🚚 Trucks <span class="free" id="free-trucks"></span></span>
+    <span>🛠️ Engineers <span class="free" id="free-engineers"></span></span>
+    <span>✈️ Bombers <span class="free" id="free-bombers"></span></span>
+    <span class="h-mix">Train mix ⛽ / 💥</span>
+  </div>
+  <div id="sectors"></div>
+</div>
 
 <div id="tip" hidden></div>
 
@@ -189,16 +221,16 @@
     <h2>How to play</h2>
     <p>Summer 1941. You run supply for Army Group Centre. The generals fight; <b>you decide what reaches them</b>. Take <b>Vitebsk, Smolensk and Roslavl</b> by 4 August.</p>
     <ul>
-      <li>🚂 <b>Trains</b> run only on converted track. Russian track is a wider gauge, so your trains stop at the <b>railhead</b>.</li>
+      <li>🚂 <b>Trains</b> run only on converted track. Russian track is a wider gauge, so your trains stop where the converted track ends: the <b>railhead</b>. That can be past the last station.</li>
       <li>🚚 <b>Trucks</b> carry supplies from the railhead to the front. The further the front gets ahead, the less they carry, and they burn fuel doing it.</li>
-      <li>🛠️ <b>Engineers</b> convert track and repair stations. The Soviets wreck stations as they retreat: the faster you take them, the less damage.</li>
+      <li>🛠️ <b>Engineers</b> convert track and repair stations: <b>🛤️ Track</b> pushes the railhead on, <b>Station 🚉</b> fixes stations first. The Soviets wreck stations as they retreat: the faster you take them, the less damage.</li>
       <li>✈️ <b>Bombers</b> slow Soviet resistance. Put them where air recon reports a <b>build-up</b> to weaken the counterattack. They burn fuel from that sector's depot.</li>
       <li>🪖 <b>Reserves</b> arrive at Warsaw. Send them east by train: infantry is cheap, panzers move fast but drink fuel, artillery beats counterattacks but eats ammo. Every unit you add needs feeding.</li>
-      <li>⛽ / 💥 Set each sector's <b>fuel and ammo mix</b>. <b>Match needs</b> sets it for you.</li>
+      <li>⛽ / 💥 Pick each sector's <b>fuel and ammo mix</b>. The button underlined in green matches what it uses.</li>
       <li>🛡️ Soviet counterattacks hit the <b>weakest</b> sector. Keep ammo at the front, or they break through.</li>
       <li>💥 Soviet bombers hit the <b>fullest depot</b>. Don't pile everything in one place.</li>
     </ul>
-    <p class="muted">Each sector card shows its supply pipe and a line of advice. Hover a station to see its condition.</p>
+    <p class="muted">Each sector row shows its supply line and a line of advice. The numbers above the rows are what's still free to assign. Hover a station for its stocks and traffic.</p>
     <p class="muted">Open this again any time: <b>📖 How to play</b> at the top, the <b>?</b> next to End day, or press <b>H</b>.</p>
     <button class="go" data-close>Start</button>
   </div>

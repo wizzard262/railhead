@@ -58,7 +58,7 @@ const Sim = (() => {
       const startKm = LINES[s.id][1] + 5;
       const sec = {
         id: s.id, posture: 'advance',
-        trains: s.id === 'north' ? 4 : 5, fuelMix: 55, focus: 'balanced', trucks: s.id === 'north' ? 4 : 5, engineers: 6, bombers: 2,
+        trains: s.id === 'north' ? 4 : 5, fuelMix: 50, focus: 'balanced', trucks: s.id === 'north' ? 4 : 5, engineers: 6, bombers: 2,
         front: startKm, lastAdvance: 0, lastCapture: 1,
         forces: Object.assign({}, s.forces),
         depot: { fuel: 2500, ammo: 2000 }, stock: { fuel: 0, ammo: 0 },
@@ -116,10 +116,13 @@ const Sim = (() => {
     return i;
   }
 
+  // Where trains can unload: the last usable station, plus any converted track beyond it towards the front
   function railhead(st, sec) {
     const i = railheadIndex(st, sec);
-    const line = sectorDef(sec.id).line;
-    return { index: i, node: line[i], km: LINES[sec.id][i] };
+    const line = sectorDef(sec.id).line, kms = LINES[sec.id];
+    let laid = 0;
+    if (i + 1 < line.length) laid = Math.min(st.links[linkKey(line[i], line[i + 1])].done, Math.max(0, sec.front - kms[i]));
+    return { index: i, node: line[i], stationKm: kms[i], laid, km: kms[i] + laid };
   }
 
   function gap(st, sec) { return Math.max(0, sec.front - railhead(st, sec).km); }

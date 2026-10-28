@@ -36,8 +36,21 @@
 - Stop. First make it easy to find the start-screen pop-up again, then publish
   - **📖 How to play** is now a bright orange button at the top, there's an orange **?** next to End day, and **H** opens it; the pop-up says so
 
+## 6. Layout on one page, mix and focus buttons, distances on the map
+
+- Engineer focus is now **🛤️ Track | Balanced | Station 🚉**, with each icon at its own end
+- The fuel/ammo mix is 5 buttons in the same style, **⛽ 4:1 | 2:1 | 1:1 | 1:2 | 1:4 💥**; the one that matches what the sector uses is underlined in green (replaces the slider and Match needs)
+- The three sector panels sit at the bottom as full-width rows, with their fields laid out side by side, so it all fits on one laptop screen; the map is wider and flatter (1000 × 425) with everything on it moved to fit
+- **End day** (and the **?**) sit at the top right of the map
+- The **free to assign** counts are above the sector rows, each over its own resource column
+- Hover a station to see its stocks (the depot held there), its trains a day against what it can take, and for Soviet-held stations how far ahead of the front they are
+- On the map: each line shows the next station and how far the front still has to go (e.g. "Minsk 45 km ▸")
+- Trains can now run past their last station to the end of the converted track; the map flag moves there with "+42 km laid", and the supply line shows "+42 km past it". Track conversion slowed a little (2.5 → 1.9 km per battalion a day) to keep the balance (doing nothing wins 40%, bombing reported build-ups 77%)
+- On the website: the Google Play badge on the Showdown panel is twice the size, and Railhead's picture is on the portfolio page under Battle of Hoth (it was already in the portfolio list)
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
+| 2 | 2026-10-28 | about 60 min | Prompt 6: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio |

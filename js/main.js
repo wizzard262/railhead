@@ -58,7 +58,10 @@ window.Game = (() => {
     UI.tooltip(id, e.clientX, e.clientY);
   });
   canvas.addEventListener('pointerleave', () => { hover = null; UI.tooltip(null); if (!busy) Draw.render(st, {}); });
-  window.addEventListener('resize', () => { Draw.resize(); Draw.render(st, { hover }); });
+  // Refit the map whenever its box changes size (window resized, rows below grow)
+  const fit = () => { Draw.resize(); if (!busy) Draw.render(st, { hover }); };
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.querySelector('.mapbox'));
+  else window.addEventListener('resize', fit);
   // Redraw once the map font has loaded
   if (document.fonts) document.fonts.ready.then(() => { Draw.init(canvas); refresh(); });
   refresh();
