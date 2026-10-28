@@ -6,6 +6,25 @@ const UI = (() => {
   const t = n => Math.round(n).toLocaleString('en-GB');
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
 
+  // The train and truck emoji face left; wrap them so they face right (east, towards the front)
+  function faceRight(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    while (walker.nextNode()) {
+      const n = walker.currentNode;
+      if (/[🚂🚚]/u.test(n.nodeValue) && !n.parentElement.classList.contains('face-right')) hits.push(n);
+    }
+    for (const n of hits) {
+      const frag = document.createDocumentFragment();
+      for (const part of n.nodeValue.split(/([🚂🚚])/u)) {
+        if (!part) continue;
+        if (part === '🚂' || part === '🚚') frag.append(el('span', 'face-right', part));
+        else frag.append(document.createTextNode(part));
+      }
+      n.replaceWith(frag);
+    }
+  }
+
   function init(state, changed) {
     st = state; onChange = changed;
     buildSectors();
@@ -349,6 +368,7 @@ const UI = (() => {
     for (const line of st.report) rep.append(el('li', '', line));
 
     $('#end-btn').disabled = st.won || st.lost;
+    faceRight(document.body);
   }
 
   // Station hover: condition, traffic, and the stocks held there

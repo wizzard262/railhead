@@ -110,9 +110,13 @@
 - Keep the trains' and trucks' speed but halve the animation's length: it now runs 1.6 seconds and they cover half their route
 - Do the bars on the North, Centre and South badges show a storage limit at the front? (A full bar is 3 days of advancing, the most the trucks will stock at the front. Fixed: a holding sector's bars used its smaller holding needs, so they looked full too early)
 
+## 17. Every train and truck faces right
+
+- Make all the truck and train icons face right: in the rows, headers, supply line, advice, report, reserves and How to play (the emoji face left, so they are mirrored)
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 195 min | Prompts 6–16: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 200 min | Prompts 6–17: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
