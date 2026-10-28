@@ -165,10 +165,16 @@
 - Deadline 10 → 8 August
 - Balance (200 games each): defaults alone 17%, bombing reported build-ups 44%, holding when short 87%, both 99%
 
+## 25. Pick a level
+
+- It feels too hard now, though very close; on defaults it was too easy. Not sure what the balance should be
+- Chosen: pick a level each game, on the How to play screen: **Easy** (deadline 12 August: leaving everything alone wins about 45%), **Normal** (10 August, the default: about 34%, good play 81–100%), **Hard** (8 August: about 17%)
+- The level is remembered on this computer; choosing one before the first End day starts that game again at the new level, later it applies to the next New game. The header shows it (e.g. "Day 3 of 50 · Normal")
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 290 min | Prompts 6–24: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 300 min | Prompts 6–25: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |

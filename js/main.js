@@ -5,6 +5,9 @@ window.Game = (() => {
   let st, busy = false, hover = null;
   const canvas = document.getElementById('map');
   const G = window.Game = { forecast: {} };
+  // The chosen difficulty is remembered on this computer
+  try { G.level = localStorage.getItem('railhead.level') || 'normal'; } catch (e) { G.level = 'normal'; }
+  if (!DIFFICULTY[G.level]) G.level = 'normal';
 
   function refresh() {
     G.forecast = Sim.forecast(st);
@@ -13,7 +16,7 @@ window.Game = (() => {
   }
 
   function start(seed) {
-    st = Sim.newGame(seed);
+    st = Sim.newGame(seed, G.level);
     G.state = st;
     return st;
   }
@@ -43,7 +46,12 @@ window.Game = (() => {
     requestAnimationFrame(step);
   }
 
-  G.restart = () => { start(); UI.setState(st); refresh(); };
+  G.restart = () => { start(); UI.setState(st); refresh(); UI.showLevel(); };
+  G.setLevel = level => {
+    G.level = level;
+    try { localStorage.setItem('railhead.level', level); } catch (e) { /* not saved, still used this time */ }
+    if (st.day === 1 && st.level !== level) G.restart();
+  };
   G.endDay = endDay;
 
   start();

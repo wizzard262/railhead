@@ -1,7 +1,14 @@
 // Railhead: the map and the world numbers for Summer 1941
 
 const START_DATE = new Date(1941, 5, 22);   // day 1 = Sunday 22 June 1941
-const LAST_DAY = 48;                         // 8 August 1941
+const LAST_DAY = 50;                         // 10 August 1941 (Normal; the balance tools use this)
+
+// Difficulty: the same war, a different deadline. Win rates from 200 computer-played games each
+const DIFFICULTY = {
+  easy:   { name: 'Easy',   lastDay: 52, hint: 'Deadline 12 August. Leaving everything alone wins about half the time' },
+  normal: { name: 'Normal', lastDay: 50, hint: 'Deadline 10 August. Leaving everything alone wins about a third of the time' },
+  hard:   { name: 'Hard',   lastDay: 48, hint: 'Deadline 8 August. You need to hold, push and bomb well to win' },
+};
 
 // What you have each day
 const TRAINS_PER_DAY = 14;      // trains leaving Warsaw

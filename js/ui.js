@@ -39,6 +39,27 @@ const UI = (() => {
     $('#new-btn').onclick = () => { if (confirm('Start a new game?')) window.Game.restart(); };
     for (const b of document.querySelectorAll('[data-close]')) b.onclick = () => hide(b.closest('.modal'));
     $('#again-btn').onclick = () => { hide($('#result')); window.Game.restart(); };
+    buildLevels();
+  }
+
+  // Difficulty buttons in How to play: a new level starts a new game if this one hasn't begun
+  function buildLevels() {
+    const seg = $('#level-seg');
+    seg.textContent = '';
+    for (const k in DIFFICULTY) {
+      const b = el('button', '', DIFFICULTY[k].name);
+      b.title = DIFFICULTY[k].hint;
+      b.dataset.k = k;
+      b.onclick = () => { window.Game.setLevel(k); showLevel(); };
+      seg.append(b);
+    }
+    showLevel();
+  }
+
+  function showLevel() {
+    const chosen = window.Game.level;
+    for (const b of $('#level-seg').children) b.classList.toggle('on', b.dataset.k === chosen);
+    $('#level-note').textContent = DIFFICULTY[chosen].hint + (chosen !== st.level ? ' (starts with your next New game)' : '');
   }
 
   function setState(state) { st = state; buildSectors(); }
@@ -322,9 +343,9 @@ const UI = (() => {
   }
 
   function update() {
-    const date = Sim.dateText(Math.min(st.day, LAST_DAY));
+    const date = Sim.dateText(Math.min(st.day, st.lastDay));
     $('#date').textContent = date;
-    $('#day').textContent = `Day ${Math.min(st.day, LAST_DAY)} of ${LAST_DAY}`;
+    $('#day').textContent = `Day ${Math.min(st.day, st.lastDay)} of ${st.lastDay} · ${DIFFICULTY[st.level].name}`;
     $('#objectives').innerHTML = OBJECTIVES.map(id => `<span class="obj ${st.nodes[id].captured ? 'done' : ''}">${st.nodes[id].captured ? '✅' : '🎯'} ${NODES[id].name}</span>`).join('');
     freeBadge('#free-trains', Sim.freeTrains(st));
     freeBadge('#free-trucks', Sim.freePool(st, 'trucks', TRUCK_COLUMNS));
@@ -440,13 +461,13 @@ const UI = (() => {
     if (st.won) {
       const d = st.wonDay;
       const vs = d <= HISTORICAL_DAY ? 'Faster than the real Army Group Centre, which took Smolensk on 16 July.' : `The real Army Group Centre took Smolensk on 16 July (day ${HISTORICAL_DAY}).`;
-      box.innerHTML = `<h2>🏆 Objectives taken</h2><p>Vitebsk, Smolensk and Roslavl are all in German hands on <b>${Sim.dateText(d)}</b>, day ${d} of ${LAST_DAY}.</p><p>${vs}</p>`;
+      box.innerHTML = `<h2>🏆 Objectives taken</h2><p>Vitebsk, Smolensk and Roslavl are all in German hands on <b>${Sim.dateText(d)}</b>, day ${d} of ${st.lastDay} on ${DIFFICULTY[st.level].name}.</p><p>${vs}</p>`;
     } else {
       const done = OBJECTIVES.filter(id => st.nodes[id].captured).map(id => NODES[id].name);
-      box.innerHTML = `<h2>⌛ Out of time</h2><p>By ${Sim.dateText(LAST_DAY)} the offensive had stalled. ${done.length ? 'Taken: ' + done.join(', ') + '.' : 'No objective was taken.'}</p><p>Watch the gap between railhead and front, and the line limits on the trains.</p>`;
+      box.innerHTML = `<h2>⌛ Out of time</h2><p>By ${Sim.dateText(st.lastDay)} the offensive had stalled. ${done.length ? 'Taken: ' + done.join(', ') + '.' : 'No objective was taken.'}</p><p>Watch the gap between railhead and front, and the line limits on the trains.</p>`;
     }
     show('#result');
   }
 
-  return { init, setState, update, tooltip, result, show, hide };
+  return { init, setState, update, tooltip, result, show, hide, showLevel };
 })();

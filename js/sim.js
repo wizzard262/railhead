@@ -39,10 +39,11 @@ const Sim = (() => {
     LINES[s.id] = kms;
   }
 
-  function newGame(seed) {
+  function newGame(seed, level) {
     seed = seed || (Date.now() % 1e9);
+    level = DIFFICULTY[level] ? level : 'normal';
     const st = {
-      seed, day: 1, rand: null,
+      seed, day: 1, rand: null, level, lastDay: DIFFICULTY[level].lastDay,
       nodes: {}, links: {}, sectors: [],
       reserves: [], queue: [], marching: [],
       bombersLost: 0,
@@ -532,7 +533,7 @@ const Sim = (() => {
     if (OBJECTIVES.every(id => st.nodes[id].captured)) {
       st.won = true; st.wonDay = st.day - 1;
       rep.unshift(`🏆 All objectives taken on ${dateText(st.wonDay)}.`);
-    } else if (st.day > LAST_DAY) {
+    } else if (st.day > st.lastDay) {
       st.lost = true;
       rep.unshift('⌛ Time is up. The offensive has run out of steam before reaching all the objectives.');
     }
