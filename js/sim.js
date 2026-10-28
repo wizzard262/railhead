@@ -478,8 +478,9 @@ const Sim = (() => {
           b -= useB;
         }
       };
-      const convert = () => {
-        if (b <= 0 || rh + 1 >= line.length) return;
+      // The player's focus: push the track forward, or keep stations running
+      repair(ENGINEER_FOCUS[sec.focus].repairFirst);
+      if (b > 0 && rh + 1 < line.length) {
         const key = linkKey(line[rh], line[rh + 1]);
         const link = st.links[key];
         const reach = Math.min(LINKS[key].len, Math.max(...st.sectors
@@ -489,16 +490,8 @@ const Sim = (() => {
         const useB = Math.min(b, left / CONVERT_KM);
         link.done = Math.min(LINKS[key].len, link.done + useB * CONVERT_KM);
         b -= useB;
-      };
-      // The player's focus: stations in a bad way first, then split between repairs and track
-      const focus = ENGINEER_FOCUS[sec.focus];
-      repair(focus.repairFirst);
-      const forTrack = b * (1 - focus.repairShare);
-      b -= forTrack;
-      repair(100);
-      b += forTrack;
-      convert();
-      repair(100);
+      }
+      if (b > 0) repair(100);
     }
     for (const sec of st.sectors) {
       const before = sec._rh;

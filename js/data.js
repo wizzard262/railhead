@@ -5,9 +5,9 @@ const LAST_DAY = 50;                         // 10 August 1941 (Normal; the bala
 
 // Difficulty: the same war, a different deadline. Win rates from 200 computer-played games each
 const DIFFICULTY = {
-  easy:   { name: 'Easy',   lastDay: 52, hint: 'Deadline 12 August. Leaving everything alone wins about a third of the time' },
-  normal: { name: 'Normal', lastDay: 50, hint: 'Deadline 10 August. Leaving everything alone wins about a quarter of the time' },
-  hard:   { name: 'Hard',   lastDay: 48, hint: 'Deadline 8 August. Leaving everything alone rarely wins: hold, push and bomb well' },
+  easy:   { name: 'Easy',   lastDay: 52, hint: 'Deadline 12 August. Leaving everything alone wins about half the time' },
+  normal: { name: 'Normal', lastDay: 50, hint: 'Deadline 10 August. Leaving everything alone wins about a third of the time' },
+  hard:   { name: 'Hard',   lastDay: 48, hint: 'Deadline 8 August. You need to hold, push and bomb well to win' },
 };
 
 // What you have each day
@@ -25,12 +25,11 @@ const REPAIR = 6;               // station condition repaired per battalion per 
 const BOMBER_FUEL = 25;         // tons per bomber group per day, from the sector's depot
 const BOMBER_LOSS = 0.04;       // chance a group is lost on each day's sorties
 
-// How engineers split their work: first any station below repairFirst %, then repairShare of the rest
-// goes on repairs up to 100% and the remainder lays track (whatever one side can't use goes to the other)
+// What engineers do first: repair stations up to repairFirst %, then convert track, then repair the rest
 const ENGINEER_FOCUS = {
-  track:    { name: '🛤️ Track',   repairFirst: 25,  repairShare: 0,   hint: 'Push the railhead forward; only fix stations that barely work' },
-  balanced: { name: 'Balanced',   repairFirst: 50,  repairShare: 0.5, hint: 'Half repair stations back to full, half lay track' },
-  station:  { name: 'Station 🚉', repairFirst: 100, repairShare: 1,   hint: 'Get every station back to full before laying track' },
+  track:    { name: '🛤️ Track',   repairFirst: 25,  hint: 'Push the railhead forward; only fix stations that barely work' },
+  balanced: { name: 'Balanced',   repairFirst: 70,  hint: 'Fix badly damaged stations, then lay track' },
+  station:  { name: 'Station 🚉', repairFirst: 100, hint: 'Get every station back to full before laying track' },
 };
 
 // Fuel share of the supply trains, as fuel:ammo buttons from all-fuel to all-ammo

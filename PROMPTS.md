@@ -180,6 +180,7 @@
 - Engineers on Balanced, but after a day both bombed stations on that line stayed at 70%
 - That was Balanced's old rule: repair up to 70%, then lay track, and only finish repairs with whatever was left. Now **Balanced** fixes anything below 50% first, then splits the rest **half on repairs up to 100%, half on track** (one side's spare goes to the other). **Track** still only patches stations under 25%; **Station** still repairs everything first
 - New balance (200 games each, leaving everything alone / bombing build-ups / holding when short / both): Easy 36 / 96 / 89 / 100%, Normal 26 / 78 / 83 / 99%, Hard 9 / 21 / 67 / 91%. Level hints updated
+- Steve: leave it as it was (he hadn't known Balanced stops at 70%). Put back: Balanced repairs stations up to 70%, then lays track, then finishes repairs with what's left
 
 ## Sessions
 
