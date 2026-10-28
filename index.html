@@ -113,7 +113,7 @@
   .step button { width: 26px; height: 26px; padding: 0; font-size: 16px; line-height: 1; }
   .step b { min-width: 22px; text-align: center; font-size: 15px; }
 
-  .pipe { display: grid; grid-template-columns: minmax(58px, .7fr) minmax(66px, 1fr) minmax(80px, 1fr) minmax(120px, 1.8fr) minmax(64px, .9fr); align-items: center; margin-top: 10px; font-size: 12px; }
+  .pipe { display: grid; grid-template-columns: minmax(58px, .7fr) minmax(62px, 1fr) minmax(78px, 1fr) minmax(116px, 1.7fr) minmax(98px, 1.1fr); align-items: center; margin-top: 10px; font-size: 12px; }
   .pipe-node { background: #fffaf0; border: 1.5px solid var(--ink); border-radius: 6px; padding: 2px 5px; line-height: 1.2; min-width: 0; }
   .pipe-node b { display: block; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pipe-node small { display: block; font-size: 10.5px; color: var(--muted); white-space: nowrap; }
@@ -121,6 +121,10 @@
   .pipe-pair .pipe-seg { flex: 1 1 0; }
   .pipe-pair .pipe-seg.extend { flex: 0 1 62px; }
   /* Train legs dashed black like good track, truck legs dashed brown */
+  .dayrow { display: flex; align-items: center; gap: 3px; }
+  .bar { display: inline-block; width: 34px; height: 6px; background: rgba(40,30,15,.18); border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; }
+  .bar.fuel i { background: var(--fuel); } .bar.ammo i { background: var(--ammo); }
   .pipe-seg { position: relative; text-align: center; padding: 0 2px; min-width: 0; --leg: #2b2418; }
   .pipe-seg.truck { --leg: #8a5a2b; }
   .pipe-seg i { display: block; height: 0; border-top: 4px dashed var(--leg); margin: 5px 0 3px; position: relative; }
@@ -182,7 +186,7 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v15</span>
+    <span id="ver">v16</span>
   </div>
 </header>
 
@@ -260,10 +264,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=15"></script>
-<script src="js/sim.js?v=15"></script>
-<script src="js/draw.js?v=15"></script>
-<script src="js/ui.js?v=15"></script>
-<script src="js/main.js?v=15"></script>
+<script src="js/data.js?v=16"></script>
+<script src="js/sim.js?v=16"></script>
+<script src="js/draw.js?v=16"></script>
+<script src="js/ui.js?v=16"></script>
+<script src="js/main.js?v=16"></script>
 </body>
 </html>

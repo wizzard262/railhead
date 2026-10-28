@@ -275,7 +275,8 @@ const UI = (() => {
     const f = flows(sec), rh = Sim.railhead(st, sec);
     const weakest = Math.min(f.trainRatio, f.truckRatio);
     const seg = (mode, r, label, sub, neck) => `<div class="pipe-seg ${mode} ${tone(r)}"><span class="flow">${label}</span><i></i><span class="sub">${sub}</span>${neck && r < 1 && r === weakest ? '<span class="neck">narrowest</span>' : ''}</div>`;
-    const days = (v, c) => `<span class="${v < 1 ? 'warn' : ''}">${c} ${v.toFixed(1)} d</span>`;
+    // Icon, bar (full = 3 days of advancing), then days in hand: the same as the map badges
+    const days = (v, c, cls) => `<span class="dayrow"><span>${c}</span><span class="bar ${cls}"><i style="width:${Math.min(100, v / 3 * 100)}%"></i></span><span class="${v < 1 ? 'warn' : ''}">${v.toFixed(1)} d</span></span>`;
     const past = rh.laid >= 1;
     return `
       <div class="pipe-node"><b>Warsaw</b><small>base</small></div>
@@ -285,7 +286,7 @@ const UI = (() => {
         ${past ? seg('train extend', f.trainRatio, `🚂 +${t(rh.laid)} km`, 'to track end', false) : ''}
         ${seg('truck', f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`, true)}
       </div>
-      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽')}</small><small>${days(f.daysA, '💥')}</small><small>uses ${t(f.need)}/d</small></div>`;
+      <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽', 'fuel')}</small><small>${days(f.daysA, '💥', 'ammo')}</small><small>uses ${t(f.need)}/d</small></div>`;
   }
 
   function freeBadge(id, n) {

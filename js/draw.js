@@ -255,13 +255,73 @@ const Draw = (() => {
     }
   }
 
-  // A unit counter at the front with fuel and ammo bars
   // The sector's badge sits back on the German side, as a speech bubble whose tail points at its front
-  function drawCounter(st, sec, i) {
+  const BADGE_W = 98, BADGE_H = 40;
+
+  // Everything a badge must not cover: each station and its name
+  function stationBoxes() {
+    const boxes = [];
+    for (const id in NODES) {
+      const p = P[id], big = NODES[id].cap >= 9;
+      ctx.font = (big ? 'bold 13px' : '12px') + ' Georgia, serif';
+      const lx = id === 'warsaw' ? -20 : 10, ly = id === 'polotsk' ? -10 : -9;
+      boxes.push({ x: p.x - 12, y: p.y - 12, w: 24, h: 30 });                                   // station, condition bar, objective ring
+      boxes.push({ x: p.x + lx - 2, y: p.y + ly - 13, w: ctx.measureText(NODES[id].name).width + 4, h: 17 }); // its name
+    }
+    return boxes;
+  }
+
+  // How many points along a badge's tail (box centre to its front) fall inside another box
+  function tailHits(box, front, other) {
+    const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
+    const len = Math.hypot(front.x - cx, front.y - cy);
+    let n = 0;
+    for (let d = 0; d <= len; d += 5) {
+      const x = cx + (front.x - cx) * d / len, y = cy + (front.y - cy) * d / len;
+      if (x > other.x && x < other.x + other.w && y > other.y && y < other.y + other.h && !(x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h)) n++;
+    }
+    return n;
+  }
+
+  const overlap = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+
+  // Where the three badges go: back from their fronts on the German side if there's room,
+  // otherwise anywhere nearby (over the front if need be), never on a station or another badge
+  function badgePlaces(st) {
+    const stations = stationBoxes();
+    const tries = [];
+    for (const dx of [-150, -125, -175, -100, -200, -75, 40, 70, 100]) {
+      for (const dy of [-62, -20, 20, -100, 60, -140, 100]) tries.push({ dx, dy });
+    }
+    const placed = [];
+    return st.sectors.map((sec, i) => {
+      const p = along(sec.id, sec.front);
+      const want = [{ dx: -150, dy: -62 }, { dx: -165, dy: -6 }, { dx: -140, dy: 46 }][i];
+      let best = null, bestScore = Infinity;
+      for (const t of tries) {
+        const box = { x: p.x + t.dx, y: p.y + t.dy, w: BADGE_W, h: BADGE_H };
+        if (box.x < 4 || box.y < 4 || box.x + box.w > W - 4 || box.y + box.h > H - 4) continue;
+        let hit = 0;
+        for (const s of stations) hit += overlap(box, s);
+        for (const o of placed) {
+          hit += overlap({ x: o.x - 6, y: o.y - 6, w: o.w + 12, h: o.h + 12 }, box) * 10;
+          hit += tailHits(o, o.front, box) * 400;      // this box would hide that badge's tail
+          hit += tailHits(box, p, o) * 400;            // this badge's tail would run under that box
+        }
+        for (const s of stations) hit += tailHits(box, p, s) * 20;
+        const score = hit * 100 + Math.hypot(t.dx - want.dx, t.dy - want.dy) + (t.dx > 0 ? 120 : 0);
+        if (score < bestScore) { bestScore = score; best = box; }
+      }
+      best = best || { x: Math.max(4, Math.min(W - BADGE_W - 4, p.x - 150)), y: Math.max(4, Math.min(H - BADGE_H - 4, p.y)), w: BADGE_W, h: BADGE_H };
+      best.front = p;
+      placed.push(best);
+      return best;
+    });
+  }
+
+  function drawCounter(st, sec, place) {
     const p = along(sec.id, sec.front), col = Sim.sectorDef(sec.id).colour;
-    const off = [{ x: -150, y: -62 }, { x: -165, y: -6 }, { x: -140, y: 46 }][i];
-    const w = 54, h = 32;
-    const x = Math.max(4, Math.min(W - w - 4, p.x + off.x)), y = Math.max(4, Math.min(H - h - 4, p.y + off.y));
+    const w = BADGE_W, h = BADGE_H, x = place.x, y = place.y;
     // Tail: from the bubble's nearest side to the exact front point
     const cx = x + w / 2, cy = y + h / 2;
     const ang = Math.atan2(p.y - cy, p.x - cx);
@@ -276,15 +336,20 @@ const Draw = (() => {
     ctx.beginPath(); ctx.moveTo(cx + nx * 0.8, cy + ny * 0.8); ctx.lineTo(cx - nx * 0.8, cy - ny * 0.8);
     ctx.strokeStyle = '#f4ead2'; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = col; ctx.font = 'bold 10px system-ui, sans-serif';
-    ctx.fillText(Sim.sectorDef(sec.id).name.toUpperCase(), x + 5, y + 12);
-    // Full bar = 3 days of advancing, the most the trucks stock at the front
+    ctx.fillText(Sim.sectorDef(sec.id).name.toUpperCase(), x + 6, y + 12);
+    // Icon, bar, then days in hand. Full bar = 3 days of advancing, the most the trucks stock at the front
     const n = Sim.needs(sec, 'advance');
-    const bar = (v, yy, c) => {
-      ctx.fillStyle = 'rgba(40,30,15,.18)'; ctx.fillRect(x + 5, yy, w - 10, 4);
-      ctx.fillStyle = c; ctx.fillRect(x + 5, yy, (w - 10) * Math.max(0, Math.min(1, v)), 4);
+    const row = (ch, days, yy, c) => {
+      ctx.font = '9px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+      ctx.textBaseline = 'middle'; ctx.fillText(ch, x + 5, yy + 2);
+      ctx.fillStyle = 'rgba(40,30,15,.18)'; ctx.fillRect(x + 18, yy, 40, 5);
+      ctx.fillStyle = c; ctx.fillRect(x + 18, yy, 40 * Math.max(0, Math.min(1, days / 3)), 5);
+      ctx.fillStyle = days < 1 ? '#a3291c' : '#2b2418'; ctx.font = 'bold 9px system-ui, sans-serif';
+      ctx.fillText(`${days.toFixed(1)} d`, x + 62, yy + 3);
+      ctx.textBaseline = 'alphabetic';
     };
-    bar(sec.stock.fuel / (n.fuel * 3 || 1), y + 17, '#c47a1a');
-    bar(sec.stock.ammo / (n.ammo * 3 || 1), y + 24, '#5a5a5a');
+    row('⛽', sec.stock.fuel / (n.fuel || 1), y + 18, '#c47a1a');
+    row('💥', sec.stock.ammo / (n.ammo || 1), y + 29, '#5a5a5a');
   }
 
   function arrow(from, to, col, wide) {
@@ -329,7 +394,8 @@ const Draw = (() => {
     for (const id in NODES) drawStation(st, id, opts.hover === id);
     for (const id of st.events.raids || []) burst({ x: P[id].x + 14, y: P[id].y - 14 }, 'rgba(200,60,20,.75)');
     st.sectors.forEach((s, i) => drawRailhead(st, s, i));
-    st.sectors.forEach((s, i) => drawCounter(st, s, i));
+    const places = badgePlaces(st);
+    st.sectors.forEach((s, i) => drawCounter(st, s, places[i]));
     if (opts.anim) drawMoving(st, opts.anim);
   }
 

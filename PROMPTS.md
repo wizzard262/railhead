@@ -114,9 +114,15 @@
 
 - Make all the truck and train icons face right: in the rows, headers, supply line, advice, report, reserves and How to play (the emoji face left, so they are mirrored)
 
+## 18. Days in hand, and badges that keep clear
+
+- On the map badges, draw the fuel and ammo icons in front of the two bars, then the bar, then the days in hand (e.g. "1.3 d"); repeat this layout in the Front box of each sector row below
+- Don't let the North, Centre and South badges overlap, don't let them cover any station, move them right over the front if needed, and don't let a badge hide its neighbour's arrow
+- Each badge now tries spots round its front (German side first, the Soviet side if needed) and takes the closest one that covers no station or station name, no other badge, and no other badge's tail, with its own tail kept off stations where it can
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 200 min | Prompts 6–17: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
+| 2 | 2026-10-28 | about 215 min | Prompts 6–18: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
