@@ -67,9 +67,24 @@
 - Stretch the map to 100% of the width available (keep the reserves and report panels), and spread the stations to fill the map from left to right and top to bottom
 - The map now fills its whole box; the stations' corners (Warsaw, Roslavl, Polotsk, Brest) sit just inside its edges
 
+## 9. Train and truck legs in the supply line
+
+- Between the railhead station and the front, show two arrows: the train going on past the station to the end of the track, then the truck for the rest
+- Train arrows dashed black like good track, truck arrows dashed brown (instead of green); the label colour still shows whether each part keeps up
+
+## 10. Cleaner map
+
+- Remove the distances from the map (the "km laid" and next-station tags)
+- Move the North, Centre and South badges further back, as speech bubbles whose tail points exactly at their front
+
+## 11. Smaller report
+
+- Yesterday's report was always too big: make it half the size so all the reserves show without scrolling
+- The report now takes a quarter of the side column; each reserve is one line with its cost (trains, then tons a day) beside the name
+
 ## Sessions
 
 | # | Date | Length | What we did |
 |---|------|--------|-------------|
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
-| 2 | 2026-10-28 | about 120 min | Prompts 6–8: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box |
+| 2 | 2026-10-28 | about 150 min | Prompts 6–11: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report |

@@ -217,29 +217,6 @@ const Draw = (() => {
     ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 4); ctx.lineTo(p.x + ox, p.y - 26); ctx.stroke();
     ctx.fillStyle = col;
     ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 26); ctx.lineTo(p.x + ox + 13, p.y - 22); ctx.lineTo(p.x + ox, p.y - 18); ctx.closePath(); ctx.fill();
-    if (past) tag(`+${Math.round(rh.laid)} km laid`, p.x + 4, p.y - 30, col);
-  }
-
-  // A small paper label
-  function tag(text, x, y, col) {
-    ctx.font = 'bold 10px system-ui, sans-serif';
-    const w = ctx.measureText(text).width + 8;
-    ctx.fillStyle = 'rgba(244,234,210,.92)'; ctx.strokeStyle = col; ctx.lineWidth = 1;
-    ctx.fillRect(x - w / 2, y - 11, w, 14); ctx.strokeRect(x - w / 2, y - 11, w, 14);
-    ctx.fillStyle = col; ctx.textAlign = 'center';
-    ctx.fillText(text, x, y);
-    ctx.textAlign = 'left';
-  }
-
-  // How far the front still has to go to the next station on each line
-  function drawNextStation(st, sec) {
-    const line = Sim.sectorDef(sec.id).line, kms = Sim.LINES[sec.id];
-    const i = kms.findIndex(k => k > sec.front + 0.5);
-    if (i < 0) return;
-    const dist = kms[i] - sec.front;
-    const p = along(sec.id, sec.front + Math.min(dist / 2, 40));
-    const col = Sim.sectorDef(sec.id).colour;
-    tag(`${NODES[line[i]].name} ${Math.round(dist)} km ▸`, p.x + 2, p.y + 18, col);
   }
 
   // The front line and the Soviet side shaded
@@ -276,23 +253,34 @@ const Draw = (() => {
   }
 
   // A unit counter at the front with fuel and ammo bars
+  // The sector's badge sits back on the German side, as a speech bubble whose tail points at its front
   function drawCounter(st, sec, i) {
     const p = along(sec.id, sec.front), col = Sim.sectorDef(sec.id).colour;
-    const off = [{ x: -62, y: -30 }, { x: -64, y: -14 }, { x: -60, y: 8 }][i];
-    const w = 46, h = 30, x = p.x + off.x, y = Math.max(2, Math.min(H - h - 2, p.y + off.y));
-    ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([2, 2]);
-    ctx.beginPath(); ctx.moveTo(x + w, y + h / 2); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = '#f4ead2'; ctx.strokeStyle = col; ctx.lineWidth = 2.5;
-    ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+    const off = [{ x: -150, y: -62 }, { x: -165, y: -6 }, { x: -140, y: 46 }][i];
+    const w = 54, h = 32;
+    const x = Math.max(4, Math.min(W - w - 4, p.x + off.x)), y = Math.max(4, Math.min(H - h - 4, p.y + off.y));
+    // Tail: from the bubble's nearest side to the exact front point
+    const cx = x + w / 2, cy = y + h / 2;
+    const ang = Math.atan2(p.y - cy, p.x - cx);
+    const nx = -Math.sin(ang) * 7, ny = Math.cos(ang) * 7;
+    ctx.fillStyle = '#f4ead2'; ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx + nx, cy + ny); ctx.lineTo(p.x, p.y); ctx.lineTo(cx - nx, cy - ny); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, 6) : ctx.rect(x, y, w, h);
+    ctx.fill(); ctx.stroke();
+    // Cover the tail's base inside the bubble
+    ctx.beginPath(); ctx.moveTo(cx + nx * 0.8, cy + ny * 0.8); ctx.lineTo(cx - nx * 0.8, cy - ny * 0.8);
+    ctx.strokeStyle = '#f4ead2'; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = col; ctx.font = 'bold 10px system-ui, sans-serif';
-    ctx.fillText(Sim.sectorDef(sec.id).name.toUpperCase(), x + 3, y + 11);
+    ctx.fillText(Sim.sectorDef(sec.id).name.toUpperCase(), x + 5, y + 12);
     const n = Sim.needs(sec);
     const bar = (v, yy, c) => {
-      ctx.fillStyle = 'rgba(40,30,15,.18)'; ctx.fillRect(x + 3, yy, w - 6, 4);
-      ctx.fillStyle = c; ctx.fillRect(x + 3, yy, (w - 6) * Math.max(0, Math.min(1, v)), 4);
+      ctx.fillStyle = 'rgba(40,30,15,.18)'; ctx.fillRect(x + 5, yy, w - 10, 4);
+      ctx.fillStyle = c; ctx.fillRect(x + 5, yy, (w - 10) * Math.max(0, Math.min(1, v)), 4);
     };
-    bar(sec.stock.fuel / (n.fuel * 3 || 1), y + 16, '#c47a1a');
-    bar(sec.stock.ammo / (n.ammo * 3 || 1), y + 23, '#5a5a5a');
+    bar(sec.stock.fuel / (n.fuel * 3 || 1), y + 17, '#c47a1a');
+    bar(sec.stock.ammo / (n.ammo * 3 || 1), y + 24, '#5a5a5a');
   }
 
   function arrow(from, to, col, wide) {
@@ -337,7 +325,6 @@ const Draw = (() => {
     for (const id in NODES) drawStation(st, id, opts.hover === id);
     for (const id of st.events.raids || []) burst({ x: P[id].x + 14, y: P[id].y - 14 }, 'rgba(200,60,20,.75)');
     st.sectors.forEach((s, i) => drawRailhead(st, s, i));
-    st.sectors.forEach(s => drawNextStation(st, s));
     st.sectors.forEach((s, i) => drawCounter(st, s, i));
     if (opts.anim) drawMoving(st, opts.anim);
   }

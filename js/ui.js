@@ -249,17 +249,22 @@ const UI = (() => {
     return ['ok', '✅ Supply is keeping up.'];
   }
 
-  // Warsaw → trains → depot → trucks → front, narrowest part in red
+  // Warsaw → train → station → train on to the end of the track → truck → front.
+  // Train legs are dashed black like good track, truck legs dashed brown; the label colour shows if it keeps up
   function pipeHTML(sec) {
     const f = flows(sec), rh = Sim.railhead(st, sec);
     const weakest = Math.min(f.trainRatio, f.truckRatio);
-    const seg = (r, label, sub) => `<div class="pipe-seg ${tone(r)}"><span class="flow">${label}</span><i></i><span class="sub">${sub}</span>${r < 1 && r === weakest ? '<span class="neck">narrowest</span>' : ''}</div>`;
+    const seg = (mode, r, label, sub, neck) => `<div class="pipe-seg ${mode} ${tone(r)}"><span class="flow">${label}</span><i></i><span class="sub">${sub}</span>${neck && r < 1 && r === weakest ? '<span class="neck">narrowest</span>' : ''}</div>`;
     const days = (v, c) => `<span class="${v < 1 ? 'warn' : ''}">${c} ${v.toFixed(1)} d</span>`;
+    const past = rh.laid >= 1;
     return `
       <div class="pipe-node"><b>Warsaw</b><small>base</small></div>
-      ${seg(f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineShort ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`)}
-      <div class="pipe-node" title="Railhead depot: trains unload here${rh.laid >= 1 ? `, ${t(rh.laid)} km of converted track past ${NODES[rh.node].name}` : ''}"><b>${NODES[rh.node].name}</b>${rh.laid >= 1 ? `<small>+${t(rh.laid)} km past it</small>` : ''}<small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
-      ${seg(f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`)}
+      ${seg('train', f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineShort ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`, true)}
+      <div class="pipe-node" title="${past ? `Trains run on ${t(rh.laid)} km past ${NODES[rh.node].name}; the depot is at the end of the track` : `The depot is at ${NODES[rh.node].name}`}"><b>${NODES[rh.node].name}</b><small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
+      <div class="pipe-pair">
+        ${past ? seg('train extend', f.trainRatio, `🚂 +${t(rh.laid)} km`, 'to track end', false) : ''}
+        ${seg('truck', f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`, true)}
+      </div>
       <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽')}</small><small>${days(f.daysA, '💥')}</small><small>uses ${t(f.need)}/d</small></div>`;
   }
 
@@ -305,14 +310,15 @@ const UI = (() => {
     const res = $('#reserves');
     res.textContent = '';
     if (!st.reserves.length && !st.queue.length) res.append(el('p', 'muted', 'No units waiting. More arrive over the coming weeks.'));
-    if (st.reserves.length && Sim.freeTrains(st) < 2) res.append(el('p', 'res-hint', "👉 To send a unit, free some trains first: lower a sector's 🚂 Trains."));
+    if (st.reserves.length && Sim.freeTrains(st) < 2) res.append(el('p', 'res-hint', '👉 Free trains first: lower a 🚂 Trains below'));
     for (const type of UNIT_ORDER) {
       const units = st.reserves.filter(u => u.type === type);
       if (!units.length) continue;
       const T = UNIT_TYPES[type];
       const row = el('div', 'unit');
-      row.append(el('div', '', `<b>${units.length} × ${T.name}</b> <span class="muted">${T.trains} trains each, then ${T.need.advance.fuel + T.need.advance.ammo} t a day</span>`));
+      row.append(el('div', '', `<b>${units.length} × ${T.name}</b> <span class="muted cost">${T.trains} 🚂 · ${T.need.advance.fuel + T.need.advance.ammo} t/d</span>`));
       const btns = el('div', 'send');
+      btns.title = `Each takes ${T.trains} trains to send, then uses ${T.need.advance.fuel + T.need.advance.ammo} t a day`;
       for (const sec of st.sectors) {
         const b = el('button', '', '→ ' + Sim.sectorDef(sec.id).name);
         b.style.setProperty('--sec', Sim.sectorDef(sec.id).colour);
