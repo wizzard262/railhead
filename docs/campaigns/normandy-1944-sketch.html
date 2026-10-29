@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Railhead: Normandy 1944 sketch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap">
+<style>
+  body { margin: 0; background: #2b2418; display: flex; justify-content: center; padding: 16px; font-family: system-ui, sans-serif; }
+  svg { width: 100%; max-width: 1400px; height: auto; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+  .town { font: 13px Georgia, serif; fill: #2b2418; }
+  .big { font: bold 15px Georgia, serif; }
+  .river { fill: none; stroke: rgba(70,110,150,.75); stroke-linecap: round; }
+  .rname { font: italic 12px Georgia, serif; fill: rgba(50,90,130,.85); }
+  .note { font: 11px system-ui, sans-serif; fill: #6e6350; }
+  .title { font: 26px "Special Elite", monospace; fill: #2b2418; }
+  .sub { font: 13px "Special Elite", monospace; fill: #2b2418; }
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1400 620" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="paper" cx="50%" cy="50%" r="75%"><stop offset="0" stop-color="#efe3c4"/><stop offset="1" stop-color="#d9c79c"/></radialGradient>
+    <pattern id="sea" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 6 Q3 3 6 6 T12 6" fill="none" stroke="rgba(70,110,150,.35)" stroke-width="1"/></pattern>
+    <pattern id="enemy" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="14" stroke="rgba(170,50,35,.12)" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="1400" height="620" fill="url(#paper)"/>
+
+  <!-- Sea: the Channel and the North Sea -->
+  <path d="M0 0 H900 L860 40 L760 70 L640 120 L560 150 L470 165 L380 190 L300 205 L230 215 L175 205 L140 215 L120 150 L90 120 L40 125 L20 180 L0 175 Z" fill="#c9d7d8"/>
+  <path d="M0 0 H900 L860 40 L760 70 L640 120 L560 150 L470 165 L380 190 L300 205 L230 215 L175 205 L140 215 L120 150 L90 120 L40 125 L20 180 L0 175 Z" fill="url(#sea)"/>
+  <text x="330" y="90" class="rname" style="font-size:20px">E n g l i s h   C h a n n e l</text>
+  <text x="980" y="30" class="rname" style="font-size:16px">N o r t h   S e a</text>
+  <!-- Coast of Brittany to the south-west -->
+  <path d="M0 175 L20 180 L30 300 L0 330 Z" fill="#c9d7d8"/>
+
+  <!-- German side shaded (the border, roughly) -->
+  <path d="M1290 0 L1310 120 L1275 230 L1330 330 L1310 470 L1400 520 V0 Z" fill="url(#enemy)"/>
+  <path d="M1290 0 L1310 120 L1275 230 L1330 330 L1310 470 L1400 520" fill="none" stroke="rgba(110,60,110,.6)" stroke-width="2" stroke-dasharray="10 5 2 5"/>
+  <text x="1318" y="300" class="sub" fill="rgba(110,60,110,.8)" transform="rotate(80 1318 300)">German border</text>
+
+  <!-- Rivers -->
+  <path class="river" stroke-width="3" d="M560 150 Q600 200 640 230 Q700 270 760 300 Q810 330 860 330 Q900 335 960 380"/>
+  <text x="640" y="250" class="rname">Seine</text>
+  <path class="river" stroke-width="2.5" d="M120 560 Q300 540 480 560 Q640 580 820 600"/>
+  <text x="300" y="535" class="rname">Loire</text>
+  <path class="river" stroke-width="2" d="M760 70 Q820 110 900 150 Q960 170 1010 165"/>
+  <text x="860" y="120" class="rname">Somme</text>
+  <path class="river" stroke-width="2" d="M1180 60 Q1170 160 1150 240 Q1130 320 1150 420"/>
+  <text x="1110" y="300" class="rname">Meuse</text>
+  <path class="river" stroke-width="2" d="M1300 340 Q1270 400 1250 470 Q1240 520 1260 600"/>
+  <text x="1210" y="470" class="rname">Moselle</text>
+  <path class="river" stroke-width="2" d="M1010 20 Q1050 15 1080 35"/>
+  <text x="1000" y="16" class="rname">Scheldt</text>
+
+  <!-- Rail lines (French railways, bridges bombed): dashed until repaired -->
+  <g fill="none" stroke="rgba(120,40,30,.6)" stroke-width="3" stroke-dasharray="8 5">
+    <path d="M70 140 L150 260 L330 240 L520 200 L700 320 L900 300 L1080 40"/>   <!-- Cherbourg - St-Lô - Caen - Rouen - Paris - Amiens? -->
+    <path d="M330 240 L520 200 L800 110 L1010 50 L1090 30"/>                   <!-- Caen - Rouen - Amiens - Brussels - Antwerp -->
+    <path d="M150 260 L110 380 L330 470 L560 450 L700 320"/>                    <!-- St-Lô - Avranches - Le Mans - Chartres - Paris -->
+    <path d="M700 320 L910 330 L1090 380 L1250 420"/>                           <!-- Paris - Reims - Verdun - Metz -->
+    <path d="M1080 40 L1250 100"/>                                              <!-- Brussels - Aachen -->
+    <path d="M910 330 L1080 220 L1250 100"/>                                    <!-- Reims - Sedan/Liège - Aachen -->
+  </g>
+  <!-- Red Ball Express truck route -->
+  <path d="M150 260 L330 470 L560 450 L700 320 L910 330" fill="none" stroke="#c4302b" stroke-width="5" stroke-opacity=".5"/>
+  <text x="380" y="500" class="note" fill="#c4302b" style="font-weight:700;fill:#a3291c">Red Ball Express (trucks)</text>
+
+  <!-- Beaches and harbours -->
+  <g font-family="system-ui" font-size="11" font-weight="700">
+    <rect x="128" y="218" width="40" height="12" rx="3" fill="#e8c27a" stroke="#2b2418"/><text x="132" y="228" fill="#2b2418">Utah</text>
+    <rect x="178" y="222" width="46" height="12" rx="3" fill="#e8c27a" stroke="#2b2418"/><text x="181" y="232" fill="#2b2418">Omaha</text>
+    <rect x="232" y="222" width="34" height="12" rx="3" fill="#e8c27a" stroke="#2b2418"/><text x="235" y="232" fill="#2b2418">Gold</text>
+    <rect x="270" y="216" width="32" height="12" rx="3" fill="#e8c27a" stroke="#2b2418"/><text x="274" y="226" fill="#2b2418">Juno</text>
+    <rect x="306" y="208" width="38" height="12" rx="3" fill="#e8c27a" stroke="#2b2418"/><text x="309" y="218" fill="#2b2418">Sword</text>
+  </g>
+  <text x="168" y="250" class="note">⚓ Mulberry A (wrecked by storm)</text>
+  <text x="222" y="200" class="note">⚓ Mulberry B</text>
+
+  <!-- Ports and towns -->
+  <g>
+    <!-- port icon = anchor; big town = square; small = circle -->
+    <circle cx="70" cy="140" r="7" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="20" y="128" class="town big">⚓ Cherbourg</text>
+    <circle cx="520" cy="200" r="7" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="526" y="194" class="town">⚓ Rouen</text>
+    <circle cx="470" cy="168" r="5" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="420" y="160" class="town">⚓ Le Havre</text>
+    <rect x="1083" y="23" width="14" height="14" fill="#f4ead2" stroke="#a3291c" stroke-width="2"/><text x="1102" y="34" class="town big">⚓ Antwerp</text>
+    <circle cx="150" cy="260" r="6" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="158" y="276" class="town">Saint-Lô</text>
+    <rect x="323" y="233" width="14" height="14" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="342" y="257" class="town big">Caen</text>
+    <circle cx="300" cy="320" r="5" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="308" y="334" class="town">Falaise</text>
+    <circle cx="110" cy="380" r="6" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="118" y="394" class="town">Avranches</text>
+    <circle cx="200" cy="350" r="4" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="208" y="356" class="note">Mortain</text>
+    <rect x="323" y="463" width="14" height="14" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="342" y="482" class="town big">Le Mans</text>
+    <circle cx="560" cy="450" r="6" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="568" y="466" class="town">Chartres</text>
+    <rect x="690" y="310" width="20" height="20" fill="#f4ead2" stroke="#2b2418" stroke-width="2.5"/><text x="716" y="312" class="town big" style="font-size:17px">Paris</text>
+    <circle cx="800" cy="110" r="6" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="808" y="104" class="town">Amiens</text>
+    <circle cx="910" cy="330" r="6" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="918" y="324" class="town">Reims</text>
+    <rect x="1003" y="43" width="14" height="14" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="1000" y="78" class="town big">Brussels</text>
+    <circle cx="1080" cy="220" r="5" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="1088" y="216" class="town">Sedan</text>
+    <circle cx="1090" cy="380" r="6" fill="#f4ead2" stroke="#2b2418" stroke-width="2"/><text x="1098" y="374" class="town">Verdun</text>
+    <circle cx="1250" cy="100" r="7" fill="#e9c6b8" stroke="#a3291c" stroke-width="2"/><text x="1200" y="88" class="town big">Aachen</text>
+    <circle cx="1250" cy="420" r="7" fill="#e9c6b8" stroke="#a3291c" stroke-width="2"/><text x="1258" y="440" class="town big">Metz</text>
+  </g>
+
+  <!-- Objectives -->
+  <g fill="none" stroke="#a3291c" stroke-width="2" stroke-dasharray="3 3">
+    <circle cx="700" cy="320" r="22"/><circle cx="1090" cy="30" r="20"/><circle cx="1250" cy="100" r="20"/><circle cx="1250" cy="420" r="20"/>
+  </g>
+
+  <!-- Front lines -->
+  <path d="M95 165 Q130 300 180 300 Q260 290 360 250" fill="none" stroke="rgba(150,35,25,.85)" stroke-width="4"/>
+  <text x="200" y="314" class="note" style="fill:#a3291c;font-weight:700">Front, late July</text>
+  <path d="M1040 0 Q1200 120 1180 250 Q1150 350 1230 470 Q1250 540 1270 620" fill="none" stroke="rgba(150,35,25,.5)" stroke-width="3" stroke-dasharray="12 6"/>
+  <text x="1130" y="560" class="note" style="fill:#a3291c;font-weight:700">Front, mid September (fuel runs out)</text>
+
+  <!-- Sector bubbles -->
+  <g font-family="system-ui" font-size="11" font-weight="700">
+    <rect x="370" y="270" width="150" height="34" rx="6" fill="#f4ead2" stroke="#9a2a24" stroke-width="2"/>
+    <text x="378" y="285" fill="#9a2a24">BRITISH &amp; CANADIAN</text><text x="378" y="298" fill="#6e6350" font-weight="400">Caen → Antwerp</text>
+    <rect x="380" y="380" width="120" height="34" rx="6" fill="#f4ead2" stroke="#2f5d8a" stroke-width="2"/>
+    <text x="388" y="395" fill="#2f5d8a">US FIRST ARMY</text><text x="388" y="408" fill="#6e6350" font-weight="400">Saint-Lô → Aachen</text>
+    <rect x="160" y="420" width="128" height="34" rx="6" fill="#f4ead2" stroke="#3f7a3a" stroke-width="2"/>
+    <text x="168" y="435" fill="#3f7a3a">US THIRD ARMY</text><text x="168" y="448" fill="#6e6350" font-weight="400">Avranches → Metz</text>
+  </g>
+
+  <!-- Title and legend -->
+  <text x="1010" y="575" class="title">RAILHEAD · NORMANDY 1944</text>
+  <text x="1010" y="598" class="sub">Quick sketch, not to scale</text>
+  <g transform="translate(20 590)" font-size="11" fill="#2b2418" font-family="system-ui">
+    <line x1="0" y1="0" x2="26" y2="0" stroke="rgba(120,40,30,.6)" stroke-width="3" stroke-dasharray="8 5"/><text x="32" y="4">Railway, bridges bombed (repair to use)</text>
+    <line x1="250" y1="0" x2="276" y2="0" stroke="#c4302b" stroke-width="5" stroke-opacity=".5"/><text x="282" y="4">Truck route</text>
+    <text x="370" y="4">⚓ Port (arrives wrecked)</text>
+    <rect x="510" y="-6" width="26" height="10" rx="2" fill="#e8c27a" stroke="#2b2418"/><text x="542" y="4">Beach (storms close it)</text>
+    <circle cx="685" cy="0" r="8" fill="none" stroke="#a3291c" stroke-dasharray="3 3"/><text x="698" y="4">Objective</text>
+  </g>
+</svg>
+</body>
+</html>
