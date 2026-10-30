@@ -205,6 +205,12 @@
 - **Hidden numbers moved to `js/data.js`**: air raid chance, size and loss, how often recon is right, how often a station is blown up, the full-depot warning
 - **Tests added**: `node tools/test.js`. The rules play exactly as before (the same 60 games give the same result before and after)
 
+## 32. Own GitHub Pages
+
+- Publish the game on its own GitHub Pages, and have the harriercarrier.com banner and portfolio links point only there (portfolio link moved to the GitHub hosted section). Remove all of the game's code from the website
+- The repo was made public for this (free GitHub Pages needs a public repo); its whole history was checked first: no passwords or secrets
+- Live at https://wizzard262.github.io/railhead/. The old harriercarrier.com address now shows the site's "not found" page
+
 ## Sessions
 
 | # | Date | Length | What we did |
