@@ -191,9 +191,12 @@ const Sim = (() => {
     return total - st.sectors.reduce((a, s) => a + s[field], 0);
   }
 
+  // Whole trains still free. A unit part-way through loading still holds the rest of its trains,
+  // which leaves a fraction over: round down, as you can only give out whole trains
   function freeTrains(st) {
     const troop = st.queue.reduce((a, q) => a + UNIT_TYPES[q.type].trains - q.loaded, 0);
-    return TRAINS_PER_DAY - troop - st.sectors.reduce((a, s) => a + s.trains, 0);
+    const free = TRAINS_PER_DAY - troop - st.sectors.reduce((a, s) => a + s.trains, 0);
+    return Math.floor(free + 1e-6);
   }
 
   function arrivals(st) {

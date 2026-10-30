@@ -186,6 +186,10 @@
 
 - Removed "■ big station" from the legend: the town pictures on the map already show the big cities
 
+## 29. Whole trains
+
+- The free trains count could show a long fraction while a unit was part-way through loading: it now rounds down to whole trains
+
 ## Sessions
 
 | # | Date | Length | What we did |
