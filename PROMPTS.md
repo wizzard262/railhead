@@ -211,6 +211,11 @@
 - The repo was made public for this (free GitHub Pages needs a public repo); its whole history was checked first: no passwords or secrets
 - Live at https://wizzard262.github.io/railhead/. The old harriercarrier.com address now shows the site's "not found" page
 
+## 33. Prompts page full width
+
+- Steve (asked for both games): make the prompts page full width so nothing is hidden in a sideways scroll
+- prompts.html (this page) now uses the whole window width; long table headings, code and links wrap instead of scrolling sideways. Checked at 1600, 1100 and 390 px wide: no sideways scroll
+
 ## Sessions
 
 | # | Date | Length | What we did |
@@ -218,3 +223,4 @@
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
 | 2 | 2026-10-28 | about 310 min | Prompts 6–27: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |
+| 4 | 2026-10-30 | about 5 min | Prompt 33: prompts page full width (done alongside Beachhead) |
