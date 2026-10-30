@@ -329,10 +329,38 @@ const Draw = (() => {
   }
 
   // The front line and the Soviet side shaded
+  // Where a sector's front is drawn: its point on the line, pushed a little towards the enemy,
+  // so a town the front has just reached is drawn behind the line, not on it
+  const FRONT_AHEAD = 12;
+  function frontPoint(sec) {
+    const p = along(sec.id, sec.front);
+    // Direction along the line here: from a little behind to the front
+    const back = along(sec.id, Math.max(0, sec.front - 30));
+    const len = Math.hypot(p.x - back.x, p.y - back.y) || 1;
+    return { x: p.x + (p.x - back.x) / len * FRONT_AHEAD, y: p.y + (p.y - back.y) / len * FRONT_AHEAD };
+  }
+
+  // A smooth curve that passes through every point (Catmull-Rom), as a list of short straight steps
+  function smoothThrough(points, steps = 16) {
+    const out = [points[0]];
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)], p1 = points[i], p2 = points[i + 1], p3 = points[Math.min(points.length - 1, i + 2)];
+      for (let k = 1; k <= steps; k++) {
+        const t = k / steps, t2 = t * t, t3 = t2 * t;
+        // Catmull-Rom weights for the four points around this stretch
+        const w0 = -0.5 * t3 + t2 - 0.5 * t, w1 = 1.5 * t3 - 2.5 * t2 + 1, w2 = -1.5 * t3 + 2 * t2 + 0.5 * t, w3 = 0.5 * t3 - 0.5 * t2;
+        out.push({ x: w0 * p0.x + w1 * p1.x + w2 * p2.x + w3 * p3.x, y: w0 * p0.y + w1 * p1.y + w2 * p2.y + w3 * p3.y });
+      }
+    }
+    return out;
+  }
+
+  // The front line and the enemy side shaded. The line passes through every sector's front point
   function drawFront(st) {
-    const pts = st.sectors.map(s => along(s.id, s.front));
+    const pts = st.sectors.map(frontPoint);
     const top = { x: pts[0].x + 40, y: 0 }, bottom = { x: pts[2].x + 10, y: H };
-    const line = [top, ...pts, bottom];
+    const line = smoothThrough([top, ...pts, bottom]);
+    // The enemy side: everything east of the line
     ctx.save();
     ctx.beginPath(); ctx.moveTo(line[0].x, line[0].y);
     for (const p of line) ctx.lineTo(p.x, p.y);
@@ -342,22 +370,24 @@ const Draw = (() => {
     ctx.strokeStyle = 'rgba(170,50,35,.12)'; ctx.lineWidth = 1;
     for (let x = -H; x < W; x += 14) { ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x + H, 0); ctx.stroke(); }
     ctx.restore();
+    // The line itself
     ctx.strokeStyle = 'rgba(150,35,25,.85)'; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(line[0].x, line[0].y);
-    for (let i = 1; i < line.length - 1; i++) {
-      const mx = (line[i].x + line[i + 1].x) / 2, my = (line[i].y + line[i + 1].y) / 2;
-      ctx.quadraticCurveTo(line[i].x, line[i].y, mx, my);
-    }
-    ctx.lineTo(bottom.x, bottom.y); ctx.stroke();
-    // Teeth facing the enemy
+    for (const p of line) ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    // Teeth facing the enemy, evenly spaced along the curve
     ctx.fillStyle = 'rgba(150,35,25,.85)';
+    let gapLeft = 10;
     for (let i = 0; i < line.length - 1; i++) {
       const a = line[i], b = line[i + 1], len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (!len) continue;
       const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
-      for (let d = 10; d < len - 5; d += 18) {
+      let d = gapLeft;
+      for (; d < len; d += 18) {
         const x = a.x + ux * d, y = a.y + uy * d;
         ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - uy * 7 + ux * 4, y + ux * 7 + uy * 4); ctx.lineTo(x + ux * 8, y + uy * 8); ctx.fill();
       }
+      gapLeft = d - len;
     }
   }
 
@@ -427,7 +457,7 @@ const Draw = (() => {
     }
     const KEEP = 24;
     const lists = st.sectors.map((sec, i) => {
-      const p = along(sec.id, sec.front);
+      const p = frontPoint(sec);
       const want = [{ dx: -150, dy: -100 }, { dx: -165, dy: -20 }, { dx: -140, dy: 60 }][i];
       const opts = [];
       for (const t of tries) {
@@ -463,7 +493,7 @@ const Draw = (() => {
   }
 
   function drawCounter(st, sec, place) {
-    const p = along(sec.id, sec.front), col = Sim.sectorDef(sec.id).colour;
+    const p = frontPoint(sec), col = Sim.sectorDef(sec.id).colour;
     const w = BADGE_W, h = BADGE_H, x = place.x, y = place.y;
     // Tail: from the bubble's nearest side to the exact front point
     const cx = x + w / 2, cy = y + h / 2;

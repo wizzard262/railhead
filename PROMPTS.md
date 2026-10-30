@@ -216,6 +216,12 @@
 - Steve (asked for both games): make the prompts page full width so nothing is hidden in a sideways scroll
 - prompts.html (this page) now uses the whole window width; long table headings, code and links wrap instead of scrolling sideways. Checked at 1600, 1100 and 390 px wide: no sideways scroll
 
+## 34. Front line drawn past the towns it has taken
+
+- Steve (seen in Beachhead, fixed in both): a town was taken but the front was still drawn in front of it
+- The red line was smoothed by cutting each corner, so at a sharp bend (a sector far ahead of its neighbours) it passed behind the sector's own front point, leaving a taken town on the enemy side
+- The front now passes through every sector's front point (a Catmull-Rom curve), and each point is drawn 12 px towards the enemy, so a town just taken sits on our side. The shading, the teeth and the badge tails all follow the same line
+
 ## Sessions
 
 | # | Date | Length | What we did |
@@ -223,4 +229,4 @@
 | 1 | 2026-10-27 | about 150 min | Prompts 1–5: the idea and design, then the MVP: staff map from Warsaw to Smolensk, three sectors, trains, gauge conversion, trucks, engineers with a focus, bombers, reserves sent by train, Soviet build-ups, counterattacks, air raids and scorched earth, a headless balance check; then an adviser line and a supply pipe on each sector card; How to play easy to find again; published on harriercarrier.com |
 | 2 | 2026-10-28 | about 310 min | Prompts 6–27: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |
-| 4 | 2026-10-30 | about 5 min | Prompt 33: prompts page full width (done alongside Beachhead) |
+| 4 | 2026-10-30 | about 10 min | Prompts 33–34: prompts page full width; front drawn past taken towns (done alongside Beachhead) |
