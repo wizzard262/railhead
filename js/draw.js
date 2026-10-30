@@ -306,19 +306,26 @@ const Draw = (() => {
     }
   }
 
-  // A railhead flag in the sector's colour
-  function drawRailhead(st, sec, i) {
+  // Where a sector's railhead flag pole stands: just left of the town at a station, on the track out on the line
+  function flagSpot(st, sec, i) {
     const rh = Sim.railhead(st, sec);
-    if (rh.node === 'warsaw') return;
-    const col = Sim.sectorDef(sec.id).colour;
     const past = rh.laid >= 1;
-    // At a station the flag stands just left of the town; out on the line it stands on the track
     const p = past ? along(sec.id, rh.km) : P[rh.node];
     const ox = past ? 0 : -20 + (i - 1) * 6;
+    return { x: p.x + ox, y: p.y, node: rh.node };
+  }
+
+  // Emoji drawn on the canvas, in the colour emoji font of each system
+  const emojiFont = px => `${px}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`;
+
+  // A railhead flag in the sector's colour
+  function drawRailhead(st, sec, i) {
+    const f = flagSpot(st, sec, i);
+    if (f.node === 'warsaw') return;
     ctx.strokeStyle = '#2b2418'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y + 4); ctx.lineTo(p.x + ox, p.y - 20); ctx.stroke();
-    ctx.fillStyle = col;
-    ctx.beginPath(); ctx.moveTo(p.x + ox, p.y - 20); ctx.lineTo(p.x + ox - 13, p.y - 16); ctx.lineTo(p.x + ox, p.y - 12); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(f.x, f.y + 4); ctx.lineTo(f.x, f.y - 20); ctx.stroke();
+    ctx.fillStyle = Sim.sectorDef(sec.id).colour;
+    ctx.beginPath(); ctx.moveTo(f.x, f.y - 20); ctx.lineTo(f.x - 13, f.y - 16); ctx.lineTo(f.x, f.y - 12); ctx.closePath(); ctx.fill();
   }
 
   // The front line and the Soviet side shaded
@@ -357,14 +364,11 @@ const Draw = (() => {
   // The sector's badge sits back on the German side, as a speech bubble whose tail points at its front
   const BADGE_W = 98, BADGE_H = 40;
 
-  // The railhead flags, which badges must not cover either (same spots as drawRailhead uses)
+  // The railhead flags, which badges must not cover either
   function flagBoxes(st) {
     return st.sectors.map((sec, i) => {
-      const rh = Sim.railhead(st, sec);
-      const past = rh.laid >= 1;
-      const p = past ? along(sec.id, rh.km) : P[rh.node];
-      const ox = past ? 0 : -20 + (i - 1) * 6;
-      return { x: p.x + ox - 16, y: p.y - 23, w: 19, h: 29 };
+      const f = flagSpot(st, sec, i);
+      return { x: f.x - 16, y: f.y - 23, w: 19, h: 29 };
     });
   }
 
@@ -479,7 +483,7 @@ const Draw = (() => {
     // Icon, bar, then days in hand. Full bar = 3 days of advancing, the most the trucks stock at the front
     const n = Sim.needs(sec, 'advance');
     const row = (ch, days, yy, c) => {
-      ctx.font = '9px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+      ctx.font = emojiFont(9);
       ctx.textBaseline = 'middle'; ctx.fillText(ch, x + 5, yy + 2);
       ctx.fillStyle = 'rgba(40,30,15,.18)'; ctx.fillRect(x + 18, yy, 40, 5);
       ctx.fillStyle = c; ctx.fillRect(x + 18, yy, 40 * Math.max(0, Math.min(1, days / 3)), 5);
@@ -564,7 +568,7 @@ const Draw = (() => {
   // Draw an emoji icon facing right (the emoji themselves face left)
   function icon(ch, x, y) {
     ctx.save(); ctx.translate(x, y); ctx.scale(-1, 1);
-    ctx.font = '17px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+    ctx.font = emojiFont(17);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(ch, 0, 0);
     ctx.restore();

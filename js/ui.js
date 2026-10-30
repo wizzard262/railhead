@@ -129,7 +129,7 @@ const UI = (() => {
       const free = (field, total) => Sim.freePool(st, field, total) > 0;
       const trains = stepper('🚂 Trains', () => sec.trains, v => sec.trains = v, () => Sim.freeTrains(st) > 0, () => {
         const f = window.Game.forecast[sec.id];
-        const short = f && f.trains + 0.05 < sec.trains + troopFor(sec.id);
+        const short = f && f.trains + 0.05 < sec.trains + Sim.troopTrains(st, sec.id);
         return `${t(sec.trains * TRAIN_TONS)} t a day` + (short ? `<br><span class="warn">line takes ${f.trains.toFixed(1)}</span>` : '');
       });
       const trucks = stepper('🚚 Trucks', () => sec.trucks, v => sec.trucks = v, () => free('trucks', TRUCK_COLUMNS), () =>
@@ -155,10 +155,6 @@ const UI = (() => {
       wrap.append(row);
       cards.push({ sec, status, posture, forces, pipe, steppers: [trains, trucks, engineers, bombers], focus, mix, mixNote, advice });
     });
-  }
-
-  function troopFor(id) {
-    return st.queue.filter(q => q.sector === id).reduce((a, q) => a + UNIT_TYPES[q.type].trains - q.loaded, 0);
   }
 
   // The mix button closest to what the sector burns, bombers and truck fuel included
@@ -198,7 +194,7 @@ const UI = (() => {
     const trainNeed = need + burn + bomberFuel;
     return {
       n, need, gap, perTruck, truckCap, burn, bomberFuel, trainTons, trainNeed,
-      lineShort: f.trains + 0.05 < sec.trains + troopFor(sec.id), lineTakes: f.trains,
+      lineShort: f.trains + 0.05 < sec.trains + Sim.troopTrains(st, sec.id), lineTakes: f.trains,
       trainRatio: trainTons / Math.max(1, trainNeed),
       truckRatio: truckCap / Math.max(1, need),
       // Days in hand are always days of advancing, so they mean the same on Hold
@@ -246,7 +242,7 @@ const UI = (() => {
   // One line of advice: the most urgent thing to fix in this sector
   function advise(sec) {
     const f = flows(sec);
-    const atEnd = sec.front >= Sim.LINES[sec.id][Sim.LINES[sec.id].length - 1];
+    const atEnd = sec.front >= Sim.lineEnd(sec.id);
     const threat = st.intel && st.intel.sector === sec.id;
     if (atEnd && sec.posture === 'advance') return ['ok', '🏁 Objective taken. Set <b>Hold</b> and give its trains, trucks and engineers to the other sectors.'];
     if (atEnd) return ['ok', '🏁 Objective held. Keep a little ammo coming in case the Soviets counterattack.'];
@@ -290,7 +286,7 @@ const UI = (() => {
     if (f.lineShort) return ['meh', `🚧 Only <b>${f.lineTakes.toFixed(1)}</b> of your trains get through${choke()}. Move the extra trains to another sector, or set engineers to <b>Station 🚉</b>.`];
     if (f.depotDaysA < 1 && f.depotDaysF > 3) return ['meh', '💥 The depot is nearly out of <b>ammo</b> but has spare fuel. Pick the mix underlined in green, or one more toward 💥.'];
     if (f.depotDaysF < 1 && f.depotDaysA > 3) return ['meh', '⛽ The depot is nearly out of <b>fuel</b> but has spare ammo. Pick the mix underlined in green, or one more toward ⛽.'];
-    if (sec.depot.fuel + sec.depot.ammo > 9000) return ['meh', '🎯 This depot is very full: a magnet for Soviet bombers. Send some of its trains to a sector that needs them.'];
+    if (sec.depot.fuel + sec.depot.ammo > DEPOT_MAGNET) return ['meh', '🎯 This depot is very full: a magnet for Soviet bombers. Send some of its trains to a sector that needs them.'];
     if (sec.limit === 'resistance') return ['meh', '🛡️ Supply is fine; Soviet resistance is the brake. Add <b>bombers</b>, or send <b>artillery</b> or a <b>panzer division</b>.'];
     if (sec.limit === 'mobility') {
       const pz = st.reserves.some(u => u.type === 'pz');

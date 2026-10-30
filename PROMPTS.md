@@ -196,6 +196,15 @@
 - Don't let it wrap: it stays on one line and gets smaller to fit; when the gap is too small to read it (smaller laptops, phones) it is hidden, so the header never grows
 - Chosen because it is reliably sourced (Barrow, about 1980); the three-part "tactics, strategy, logistics" version has no good source
 
+## 31. Code review: tidy-up and tests
+
+- Review the code for unnecessary expensive operations, duplication and good practice, then fix what was found
+- **Speed**: nothing slow. A whole page update takes about 1.5 ms, drawing the map under 1 ms, a day's rules under 0.2 ms; placing the map badges (about 8 ms) is only redone when a front or railhead moves
+- **Dead code removed**: an unused day limit, unit icons, front history and event lists nothing read
+- **Repeated code made into one piece**: troop trains still to load (was in 3 places), the end of a line (4 places), the railhead flag position (2 places), the emoji font for the map
+- **Hidden numbers moved to `js/data.js`**: air raid chance, size and loss, how often recon is right, how often a station is blown up, the full-depot warning
+- **Tests added**: `node tools/test.js`. The rules play exactly as before (the same 60 games give the same result before and after)
+
 ## Sessions
 
 | # | Date | Length | What we did |

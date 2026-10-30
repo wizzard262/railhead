@@ -6,6 +6,7 @@ Repo: private GitHub `wizzard262/railhead`. A browser logistics game: Summer 194
 - At the end of each session, record its length in the **Sessions** table at the bottom of PROMPTS.md (keep that table last)
 - After each change to the game, save a numbered screenshot in `screenshots/` (`05-short-name.png`, …), taken in a visible browser, then add it to `screenshots/list.json`
   - `node tools/shot.js <name> [days to play] [width]` with the game served at http://localhost:8766/ (`python -m http.server 8766`). It borrows Playwright from `..\harrier-carrier-playwright-tests`
+- Run `node tools/test.js` before every commit (headless checks of the rules: same seed same game, nothing negative or out of range, deadlines, sending units). Its fingerprint of 60 games changes only when the rules or numbers change: after a deliberate rules change, paste in the new value it prints
 - After a rules change, run `node tools/balance.js` (200 headless games per strategy; `node tools/sweep.js "NAME=value,..."` tries other numbers) and check doing nothing still mostly loses while sensible play wins
 - Save every picture the user supplies with a prompt in `prompt-art/` (numbered; git-ignored)
 - Plain JavaScript, 2D canvas, classic scripts loaded in order (no modules, no `fetch` in the game), so it also runs straight from the file

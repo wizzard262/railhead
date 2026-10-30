@@ -1,7 +1,6 @@
 // Railhead: the map and the world numbers for Summer 1941
 
 const START_DATE = new Date(1941, 5, 22);   // day 1 = Sunday 22 June 1941
-const LAST_DAY = 50;                         // 10 August 1941 (Normal; the balance tools use this)
 
 // Difficulty: the same war, a different deadline. Win rates from 200 computer-played games each
 const DIFFICULTY = {
@@ -84,13 +83,13 @@ const SECTORS = [
 
 // need = tons a day by posture; attack/defend = combat power; speed = km a day added
 const UNIT_TYPES = {
-  inf: { name: 'Infantry division', short: 'Inf', icon: '✕', trains: 2, march: 30,
+  inf: { name: 'Infantry division', short: 'Inf', trains: 2, march: 30,
          need: { advance: { fuel: 30, ammo: 70 }, hold: { fuel: 8, ammo: 30 } },
          attack: 1, defend: 1.5, speed: 0.5 },
-  pz:  { name: 'Panzer division', short: 'Pz', icon: '⬭', trains: 3, march: 90,
+  pz:  { name: 'Panzer division', short: 'Pz', trains: 3, march: 90,
          need: { advance: { fuel: 260, ammo: 80 }, hold: { fuel: 30, ammo: 25 } },
          attack: 2.5, defend: 1, speed: 3 },
-  art: { name: 'Artillery regiment', short: 'Art', icon: '●', trains: 2, march: 30,
+  art: { name: 'Artillery regiment', short: 'Art', trains: 2, march: 30,
          need: { advance: { fuel: 20, ammo: 140 }, hold: { fuel: 5, ammo: 60 } },
          attack: 1.5, defend: 2.5, speed: 0 },
 };
@@ -123,5 +122,9 @@ const OBJECTIVES = ['vitebsk', 'smolensk', 'roslavl'];
 const SOVIET_GROWTH = 12;        // reserves a day, plus SOVIET_GROWTH_PER_DAY x the day
 const SOVIET_GROWTH_PER_DAY = 0.35;
 const BUILDUP_CHANCE = 0.7;      // chance each quiet day that a build-up starts once reserves are ready
+const AIR_RAID = { chance: 0.28, minStock: 1500, loss: 0.25 };   // chance a day of a raid on the fullest depot, the tons it must hold, and the share burnt
+const RECON_RIGHT = 0.75;        // chance air recon names the right sector for a build-up
+const STATION_BLOWN = 0.12;      // chance the Soviets blow a station up completely as they leave
+const DEPOT_MAGNET = 9000;       // tons in a depot at which the advice warns it draws Soviet bombers
 
 const HISTORICAL_DAY = 25;   // Smolensk fell on 16 July 1941

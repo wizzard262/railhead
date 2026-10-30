@@ -48,9 +48,8 @@ const Sim = (() => {
       reserves: [], queue: [], marching: [],
       bombersLost: 0,
       soviet: { pool: 10, buildup: null, lastTarget: null },
-      report: [], events: { attacks: [], raids: [], captures: [], bombed: [] },
+      report: [], events: { attacks: [], raids: [] },
       intel: null, won: false, lost: false, wonDay: null,
-      history: [],
     };
     for (const id in NODES) st.nodes[id] = { captured: id === 'warsaw', everCaptured: id === 'warsaw', cond: 100, day: 0 };
     for (const id in START_CAPTURED) Object.assign(st.nodes[id], { captured: true, everCaptured: true, cond: START_CAPTURED[id] });
@@ -104,6 +103,15 @@ const Sim = (() => {
 
   function sectorDef(id) { return SECTORS.find(s => s.id === id); }
 
+  // km from Warsaw to the end of a sector's line (its objective)
+  const lineEnd = id => LINES[id][LINES[id].length - 1];
+
+  // Troop trains still to load: for one sector, or for every sector when none is given
+  function troopTrains(st, sectorId) {
+    const units = st.queue.filter(q => !sectorId || q.sector === sectorId);
+    return units.reduce((a, q) => a + UNIT_TYPES[q.type].trains - q.loaded, 0);
+  }
+
   // How far up the line trains can run: converted track to a captured, usable station
   function railheadIndex(st, sec) {
     const line = sectorDef(sec.id).line;
@@ -137,8 +145,7 @@ const Sim = (() => {
 
   // Trains each sector asks for today: supply trains plus troop trains queued for it
   function requested(st, sec) {
-    const troop = st.queue.filter(q => q.sector === sec.id).reduce((a, q) => a + UNIT_TYPES[q.type].trains - q.loaded, 0);
-    return { supply: sec.trains, troop };
+    return { supply: sec.trains, troop: troopTrains(st, sec.id) };
   }
 
   // Share the trains out where track or stations are the bottleneck
@@ -194,8 +201,7 @@ const Sim = (() => {
   // Whole trains still free. A unit part-way through loading still holds the rest of its trains,
   // which leaves a fraction over: round down, as you can only give out whole trains
   function freeTrains(st) {
-    const troop = st.queue.reduce((a, q) => a + UNIT_TYPES[q.type].trains - q.loaded, 0);
-    const free = TRAINS_PER_DAY - troop - st.sectors.reduce((a, s) => a + s.trains, 0);
+    const free = TRAINS_PER_DAY - troopTrains(st) - st.sectors.reduce((a, s) => a + s.trains, 0);
     return Math.floor(free + 1e-6);
   }
 
@@ -242,7 +248,7 @@ const Sim = (() => {
     if (st.won || st.lost) return;
     const R = st.rand;
     const rep = [];
-    const ev = { attacks: [], raids: [], captures: [], bombed: [], arrived: [] };
+    const ev = { attacks: [], raids: [] };
     const sov = st.soviet;
 
     // 1. Soviet reserves grow and are sent to the front
@@ -256,7 +262,7 @@ const Sim = (() => {
     } else if (sov.pool >= 30 && R() < BUILDUP_CHANCE) {
       let best = null, bestW = -1e9;
       for (const sec of st.sectors) {
-        if (sec.front >= LINES[sec.id][LINES[sec.id].length - 1]) continue;
+        if (sec.front >= lineEnd(sec.id)) continue;
         const w = weakness(st, sec);
         if (w > bestW) { bestW = w; best = sec; }
       }
@@ -286,7 +292,6 @@ const Sim = (() => {
       if (sov.buildup && sov.buildup.sector === sec.id) {
         const hit = Math.min(sov.buildup.strength, flying * 6);
         sov.buildup.strength -= hit;
-        ev.bombed.push(sec.id);
         rep.push(`✈️ ${SECTOR_NAME(sec.id)}: bombers caught Soviet columns moving up.`);
       }
       for (let g = 0; g < flying; g++) {
@@ -324,11 +329,11 @@ const Sim = (() => {
     }
 
     // 4. Soviet air raid on the fullest depot
-    if (R() < 0.28) {
+    if (R() < AIR_RAID.chance) {
       const target = st.sectors.reduce((a, b) => (b.depot.fuel + b.depot.ammo > a.depot.fuel + a.depot.ammo ? b : a));
-      if (target.depot.fuel + target.depot.ammo > 1500) {
+      if (target.depot.fuel + target.depot.ammo > AIR_RAID.minStock) {
         const rh = railhead(st, target);
-        const lossF = target.depot.fuel * 0.25, lossA = target.depot.ammo * 0.25;
+        const lossF = target.depot.fuel * AIR_RAID.loss, lossA = target.depot.ammo * AIR_RAID.loss;
         target.depot.fuel -= lossF; target.depot.ammo -= lossA;
         if (rh.node !== 'warsaw') st.nodes[rh.node].cond = Math.max(0, st.nodes[rh.node].cond - 20 - R() * 15);
         ev.raids.push(rh.node);
@@ -400,7 +405,7 @@ const Sim = (() => {
         sec.status = halted ? 'Pushed back' : 'Holding';
         continue;
       }
-      const end = LINES[sec.id][LINES[sec.id].length - 1];
+      const end = lineEnd(sec.id);
       if (sec.front >= end) {
         sec.lastAdvance = 0; sec.status = 'Objective taken';
         const h = needs(sec, 'hold');
@@ -442,10 +447,9 @@ const Sim = (() => {
             node.everCaptured = true;
             const days = st.day - sec.lastCapture;
             let cond = clamp(85 - days * 7 + (R() * 30 - 15), 5, 90);
-            if (R() < 0.12) cond = 0;
+            if (R() < STATION_BLOWN) cond = 0;
             node.cond = Math.round(cond);
             node.day = st.day;
-            ev.captures.push(line[i]);
             const what = cond === 0 ? 'station blown up' : cond < 35 ? 'badly wrecked' : cond < 65 ? 'damaged' : 'lightly damaged';
             rep.push(`🚩 ${NODES[line[i]].name} taken (${what}, ${node.cond}%).`);
           }
@@ -510,7 +514,6 @@ const Sim = (() => {
         const sec = st.sectors.find(s => s.id === m.sector);
         sec.forces[m.type]++;
         st.marching.splice(st.marching.indexOf(m), 1);
-        ev.arrived.push(m.sector);
         rep.push(`✅ ${SECTOR_NAME(m.sector)}: ${UNIT_TYPES[m.type].name} reached the front.`);
       }
     }
@@ -518,7 +521,7 @@ const Sim = (() => {
     // 10. Intelligence: right most of the time
     st.intel = null;
     if (sov.buildup) {
-      const right = R() < 0.75;
+      const right = R() < RECON_RIGHT;
       const others = st.sectors.filter(s => s.id !== sov.buildup.sector);
       const guess = right ? sov.buildup.sector : others[Math.floor(R() * others.length)].id;
       st.intel = { sector: guess, text: `🔍 Air recon: Soviet forces massing opposite ${SECTOR_NAME(guess)}.` };
@@ -528,7 +531,6 @@ const Sim = (() => {
       sec.depot[k] = Math.max(0, sec.depot[k]);
       sec.stock[k] = Math.max(0, sec.stock[k]);
     }
-    st.history.push(st.sectors.map(s => Math.round(s.front)));
     st.day++;
     arrivals(st);
     for (const r of REINFORCEMENTS) if (r.day === st.day) rep.push(`🆕 ${UNIT_TYPES[r.type].name} arrived at Warsaw, ready to send east.`);
@@ -551,7 +553,7 @@ const Sim = (() => {
   }
 
   return {
-    LINES, LINKS, linkKey, newGame, endDay, needs, power, limits, railhead, railheadIndex, gap,
+    LINES, LINKS, linkKey, lineEnd, troopTrains, newGame, endDay, needs, power, limits, railhead, railheadIndex, gap,
     truckCapacity, forecast, freePool, freeTrains, sendUnit, cancelUnit, dateText, sectorDef,
   };
 })();
