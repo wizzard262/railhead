@@ -182,6 +182,10 @@
 - New balance (200 games each, leaving everything alone / bombing build-ups / holding when short / both): Easy 36 / 96 / 89 / 100%, Normal 26 / 78 / 83 / 99%, Hard 9 / 21 / 67 / 91%. Level hints updated
 - Steve: leave it as it was (he hadn't known Balanced stops at 70%). Put back: Balanced repairs stations up to 70%, then lays track, then finishes repairs with what's left
 
+## 28. Legend tidy
+
+- Removed "■ big station" from the legend: the town pictures on the map already show the big cities
+
 ## Sessions
 
 | # | Date | Length | What we did |
