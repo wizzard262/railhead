@@ -190,6 +190,12 @@
 
 - The free trains count could show a long fraction while a unit was part-way through loading: it now rounds down to whole trains
 
+## 30. The logistics quote
+
+- Put the quote "Amateurs talk about tactics, but professionals study logistics." and its author (General Robert H. Barrow, US Marine Corps) in the gap left of the How to play button, in both games
+- Don't let it wrap: it stays on one line and gets smaller to fit; when the gap is too small to read it (smaller laptops, phones) it is hidden, so the header never grows
+- Chosen because it is reliably sourced (Barrow, about 1980); the three-part "tactics, strategy, logistics" version has no good source
+
 ## Sessions
 
 | # | Date | Length | What we did |

@@ -34,7 +34,12 @@
   #objectives { display: flex; gap: 6px; flex-wrap: wrap; }
   .obj { padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,.1); font-size: 13px; }
   .obj.done { background: rgba(120,190,110,.3); }
-  header .links { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  /* The quote fills the gap left of How to play on one line, shrinking to fit; hidden when too small to read */
+  header .quote { flex: 1 1 0; min-width: 0; margin: 0; container-type: inline-size; text-align: right; white-space: nowrap; overflow: hidden; color: #d8cba8; }
+  header .quote span { display: block; font: italic clamp(8px, 3.3cqi, 12.5px)/1.25 Georgia, serif; }
+  header .quote cite { display: block; font: clamp(7px, 2.9cqi, 11px)/1.25 system-ui, sans-serif; opacity: .7; }
+  @container (max-width: 250px) { header .quote span, header .quote cite { display: none; } }
+  header .links { flex: none; margin-left: auto; display: flex; gap: 8px; align-items: center; }
   header .links a { color: #d8cba8; font-size: 12px; }
   header button { background: transparent; color: #f2e8cf; border-color: rgba(255,255,255,.3); }
   header #help-btn { background: #c47a1a; border-color: #c47a1a; color: #fff; font-weight: 600; }
@@ -190,6 +195,7 @@
   }
   @media (max-width: 520px) {
     header { padding: 6px 12px; }
+    header .quote { display: none; }
     #top, #board { padding-left: 10px; padding-right: 10px; }
     .brow .cell.wide { grid-column: 1 / -1; }
     .pipe { font-size: 10.5px; grid-template-columns: 44px minmax(54px, 1fr) minmax(68px, 1.2fr) minmax(54px, 1fr) minmax(56px, 1fr); }
@@ -206,12 +212,13 @@
   <h1>RAILHEAD</h1>
   <div class="when"><span id="date"></span><span id="day"></span></div>
   <div id="objectives"></div>
+  <blockquote class="quote"><span>“Amateurs talk about tactics, but professionals study logistics.”</span><cite>General Robert H. Barrow, US Marine Corps</cite></blockquote>
   <div class="links">
     <button id="help-btn" title="The rules, any time (H)">📖 How to play</button>
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v29</span>
+    <span id="ver">v30</span>
   </div>
 </header>
 
@@ -291,10 +298,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=29"></script>
-<script src="js/sim.js?v=29"></script>
-<script src="js/draw.js?v=29"></script>
-<script src="js/ui.js?v=29"></script>
-<script src="js/main.js?v=29"></script>
+<script src="js/data.js?v=30"></script>
+<script src="js/sim.js?v=30"></script>
+<script src="js/draw.js?v=30"></script>
+<script src="js/ui.js?v=30"></script>
+<script src="js/main.js?v=30"></script>
 </body>
 </html>
