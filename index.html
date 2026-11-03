@@ -104,6 +104,9 @@
   .forces b { color: var(--ink); }
   .force { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
   .coming { display: block; font-size: 11px; }
+  .strength { display: flex; flex-direction: column; gap: 1px; margin-top: 3px; font-size: 11px; white-space: nowrap; cursor: help; }
+  .strength .vs { display: block; width: 64px; height: 5px; border-radius: 3px; background: var(--bad); overflow: hidden; }
+  .strength .vs i { display: block; height: 100%; background: var(--good); }
   .unit-icon { flex: none; vertical-align: -2px; }
   .c-advice { grid-column: 2 / -1; margin-left: 8px; font-size: 13px; padding: 3px 8px; border-radius: 6px; }
   .c-advice.ok { background: rgba(63,122,58,.1); }
@@ -218,7 +221,7 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v34</span>
+    <span id="ver">v35</span>
   </div>
 </header>
 
@@ -298,10 +301,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=34"></script>
-<script src="js/sim.js?v=34"></script>
-<script src="js/draw.js?v=34"></script>
-<script src="js/ui.js?v=34"></script>
-<script src="js/main.js?v=34"></script>
+<script src="js/data.js?v=35"></script>
+<script src="js/sim.js?v=35"></script>
+<script src="js/draw.js?v=35"></script>
+<script src="js/ui.js?v=35"></script>
+<script src="js/main.js?v=35"></script>
 </body>
 </html>

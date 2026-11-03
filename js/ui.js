@@ -127,13 +127,13 @@ const UI = (() => {
       const pipe = el('div', 'cell c-pipe pipe');
 
       const free = (field, total) => Sim.freePool(st, field, total) > 0;
-      const trains = stepper('🚂 Trains', () => sec.trains, v => sec.trains = v, () => Sim.freeTrains(st) > 0, () => {
-        const f = window.Game.forecast[sec.id];
-        const short = f && f.trains + 0.05 < sec.trains + Sim.troopTrains(st, sec.id);
-        return `${t(sec.trains * TRAIN_TONS)} t a day` + (short ? `<br><span class="warn">line takes ${f.trains.toFixed(1)}</span>` : '');
+      // One more train only when one is free and the line can take it
+      const trains = stepper('🚂 Trains', () => sec.trains, v => sec.trains = v, () => Sim.freeTrains(st) > 0 && Sim.canAddTrain(st, sec), () => {
+        const full = !Sim.canAddTrain(st, sec);
+        return `${t(sec.trains * TRAIN_TONS)} t a day` + (full ? `<br><span class="warn">line takes ${Sim.lineTakes(st, sec)}</span>` : '');
       });
       const trucks = stepper('🚚 Trucks', () => sec.trucks, v => sec.trucks = v, () => free('trucks', TRUCK_COLUMNS), () =>
-        `${t(Sim.truckCapacity(st, sec))} t a day<br>over ${t(Math.max(20, Sim.gap(st, sec)))} km`);
+        `${t(Sim.truckCapacity(st, sec))} t a day<br>over ${t(Sim.gap(st, sec))} km`);
       const engineers = stepper('🛠️ Engineers', () => sec.engineers, v => sec.engineers = v, () => free('engineers', ENGINEERS), () => engineerNote(sec));
       const focus = segment(Object.keys(ENGINEER_FOCUS).map(k => ({ value: k, label: ENGINEER_FOCUS[k].name, title: ENGINEER_FOCUS[k].hint })),
         () => sec.focus, v => sec.focus = v);
@@ -157,11 +157,17 @@ const UI = (() => {
     });
   }
 
-  // The mix button closest to what the sector burns, bombers and truck fuel included
+  // The mix button that best refills the sector: what it burns over the next few days (bombers and truck fuel included),
+  // less what is already at the front and in the depot. With nothing short, the mix that matches what it burns
   function matchMix(sec) {
     const n = Sim.needs(sec);
     const extraFuel = sec.bombers * BOMBER_FUEL + (n.fuel + n.ammo) * Math.max(20, Sim.gap(st, sec)) * TRUCK_FUEL;
-    const share = 100 * (n.fuel + extraFuel) / (n.fuel + extraFuel + n.ammo);
+    // Fuel and ammo still to bring to have STOCK_DAYS in hand
+    const fuelShort = Math.max(0, (n.fuel + extraFuel) * STOCK_DAYS - sec.stock.fuel - sec.depot.fuel);
+    const ammoShort = Math.max(0, n.ammo * STOCK_DAYS - sec.stock.ammo - sec.depot.ammo);
+    // Nothing short: keep pace with what it burns
+    const burnShare = 100 * (n.fuel + extraFuel) / (n.fuel + extraFuel + n.ammo);
+    const share = fuelShort + ammoShort > 0 ? 100 * fuelShort / (fuelShort + ammoShort) : burnShare;
     return MIXES.reduce((a, b) => (Math.abs(b.fuel - share) < Math.abs(a.fuel - share) ? b : a)).fuel;
   }
 
@@ -194,7 +200,9 @@ const UI = (() => {
     const trainNeed = need + burn + bomberFuel;
     return {
       n, need, gap, perTruck, truckCap, burn, bomberFuel, trainTons, trainNeed,
-      lineShort: f.trains + 0.05 < sec.trains + Sim.troopTrains(st, sec.id), lineTakes: f.trains,
+      // Line full: it can't take another train. Over: more trains sent than get through (rounded up), sent back at the start of the day
+      lineFull: !Sim.canAddTrain(st, sec), lineTakes: Sim.lineTakes(st, sec),
+      lineOver: sec.trains + Sim.troopTrains(st, sec.id) > Sim.lineTakes(st, sec),
       trainRatio: trainTons / Math.max(1, trainNeed),
       truckRatio: truckCap / Math.max(1, need),
       // Days in hand are always days of advancing, so they mean the same on Hold
@@ -217,6 +225,41 @@ const UI = (() => {
     return worst;
   }
 
+  // The first station on this sector's line that another sector's trains also run through, and the sectors that use it
+  function sharedStation(sec) {
+    const rh = Sim.railhead(st, sec), line = Sim.sectorDef(sec.id).line;
+    for (let i = 1; i <= rh.index; i++) {
+      // Every sector whose trains reach this station
+      const users = st.sectors.filter(o => {
+        const at = Sim.sectorDef(o.id).line.indexOf(line[i]);
+        return at > 0 && at <= Sim.railhead(st, o).index;
+      });
+      if (users.length > 1) return { node: line[i], users };
+    }
+    return null;
+  }
+
+  // Why the line takes fewer trains than this sector sends, and what to do about it.
+  // A damaged station: repair it. Every station repaired: repairs can't help, so share the track or send the trains elsewhere
+  function lineAdvice(sec) {
+    const c = chokeStation(sec);
+    // A station still damaged: repairs let more trains through
+    if (c && st.nodes[c].cond < 100) {
+      return { damaged: true, why: `: <b>${NODES[c].name}</b> station is at ${Math.round(st.nodes[c].cond)}%`, fix: 'Set engineers to <b>Station 🚉</b> so more get through.' };
+    }
+    const shared = sharedStation(sec);
+    // Track shared with another sector: one sector's trains only get through if the other sends fewer
+    if (shared) {
+      const others = shared.users.filter(o => o !== sec).map(o => `<b>${secName(o.id)}</b>`).join(' and ');
+      return {
+        why: `: the track through <b>${NODES[shared.node].name}</b> is shared by ${shared.users.map(o => secName(o.id)).join(' and ')} and is full`,
+        fix: `Repairs can't add more. Take trains off ${others} so more of the track goes to this sector, or <b>Hold</b> here so it needs less.`,
+      };
+    }
+    // The line itself is at its limit
+    return { why: ': the line is running at full', fix: "Repairs can't add more. Move the trains that can't get through to another sector." };
+  }
+
   // Another sector with trucks or trains to spare
   function donor(sec, kind) {
     let best = null, spare = 0;
@@ -234,7 +277,8 @@ const UI = (() => {
   // Where to get more trucks or trains from
   function source(sec, kind, more) {
     const free = kind === 'trucks' ? Sim.freePool(st, 'trucks', TRUCK_COLUMNS) : Sim.freeTrains(st);
-    if (free > 0) return ` (${free} free)`;
+    // Say they are the spare ones at the top of the page, so the number isn't read as how many to add
+    if (free > 0) return ` (from the ${free} free)`;
     const d = donor(sec, kind);
     return d ? ` (take ${Math.min(more, d.n)} from <b>${secName(d.sec.id)}</b>)` : '';
   }
@@ -259,16 +303,10 @@ const UI = (() => {
         ? `▶️ ${inHand.toFixed(1)} days in hand: press <b>Advance</b> for a push about ${Math.round(WELL_SUPPLIED * 4 * 100)}% faster than usual.`
         : `⏸️ Holding: dug in (defence +${Math.round((HOLD_DEFENCE - 1) * 100)}%), engineers working ${HOLD_ENGINEERS}× as fast, guns softening the Soviets, and trucks stocking the front up to ${HOLD_STOCK_DAYS} days. Advance at about 4 days in hand.`];
     }
-    const choke = () => {
-      const c = chokeStation(sec);
-      if (!c) return '';
-      if (st.nodes[c].cond >= 85) {
-        const users = st.sectors.filter(o => Sim.sectorDef(o.id).line.indexOf(c) > 0 && Sim.sectorDef(o.id).line.indexOf(c) <= Sim.railhead(st, o).index);
-        if (users.length > 1) return `: the track through <b>${NODES[c].name}</b> is shared by ${users.map(o => secName(o.id)).join(' and ')} and is full`;
-      }
-      return `: <b>${NODES[c].name}</b> station is at ${Math.round(st.nodes[c].cond)}%`;
-    };
-    if (f.lineShort && f.trainRatio < 1) return ['bad', `🚧 The line only takes <b>${f.lineTakes.toFixed(1)}</b> trains a day${choke()}. Set engineers to <b>Station 🚉</b> so more get through.`];
+    if (f.lineFull && f.trainRatio < 1) {
+      const line = lineAdvice(sec);
+      return ['bad', `🚧 The line only takes <b>${f.lineTakes}</b> trains a day${line.why}. ${line.fix}`];
+    }
     const depotDays = Math.min(f.depotDaysF, f.depotDaysA);
     // Advancing on a trickle wastes it: better to stop, stock up and go again
     const frontDays = Math.min(f.daysF, f.daysA);
@@ -277,15 +315,20 @@ const UI = (() => {
     }
     if (f.truckRatio < 1 && (f.truckRatio <= f.trainRatio || depotDays > 2)) {
       const more = Math.ceil((f.need - f.truckCap) / Math.max(1, f.perTruck));
-      return [tone(f.truckRatio), `🚚 Trucks carry ${t(f.truckCap)} of the ${t(f.need)} t a day the front uses, over ${t(f.gap)} km. Add <b>${more}</b> truck${more > 1 ? 's' : ''}${source(sec, 'trucks', more)}, or more <b>engineers</b> to bring the railhead closer.`];
+      // Engineers only help when the railhead is a fair way back; trucks always drive at least 20 km
+      const closer = f.gap > 20 ? ', or more <b>engineers</b> to bring the railhead closer' : '';
+      return [tone(f.truckRatio), `🚚 Trucks carry ${t(f.truckCap)} of the ${t(f.need)} t a day the front uses, over ${t(f.gap)} km. Add <b>${more}</b> truck${more > 1 ? 's' : ''}${source(sec, 'trucks', more)}${closer}.`];
     }
     if (f.trainRatio < 1 && depotDays < 3) {
       const more = Math.ceil((f.trainNeed - f.trainTons) / TRAIN_TONS);
       return [tone(f.trainRatio), `🚂 Trains bring ${t(f.trainTons)} t a day; this sector needs about ${t(f.trainNeed)} with truck and bomber fuel. Add <b>${more}</b> train${more > 1 ? 's' : ''}${source(sec, 'trains', more)}.`];
     }
-    if (f.lineShort) return ['meh', `🚧 Only <b>${f.lineTakes.toFixed(1)}</b> of your trains get through${choke()}. Move the extra trains to another sector, or set engineers to <b>Station 🚉</b>.`];
-    if (f.depotDaysA < 1 && f.depotDaysF > 3) return ['meh', '💥 The depot is nearly out of <b>ammo</b> but has spare fuel. Pick the mix underlined in green, or one more toward 💥.'];
-    if (f.depotDaysF < 1 && f.depotDaysA > 3) return ['meh', '⛽ The depot is nearly out of <b>fuel</b> but has spare ammo. Pick the mix underlined in green, or one more toward ⛽.'];
+    if (f.lineOver) {
+      const line = lineAdvice(sec);
+      return ['meh', `🚧 Only <b>${f.lineTakes}</b> of your trains get through${line.why}. The extra go back to the pool at the start of the day${line.damaged ? '; set engineers to <b>Station 🚉</b> to take more' : ''}.`];
+    }
+    if (f.depotDaysA < 1 && f.depotDaysF > 3) return ['meh', '💥 The depot is nearly out of <b>ammo</b> but has spare fuel. Pick the mix underlined in green.'];
+    if (f.depotDaysF < 1 && f.depotDaysA > 3) return ['meh', '⛽ The depot is nearly out of <b>fuel</b> but has spare ammo. Pick the mix underlined in green.'];
     if (sec.depot.fuel + sec.depot.ammo > DEPOT_MAGNET) return ['meh', '🎯 This depot is very full: a magnet for Soviet bombers. Send some of its trains to a sector that needs them.'];
     if (sec.limit === 'resistance') return ['meh', '🛡️ Supply is fine; Soviet resistance is the brake. Add <b>bombers</b>, or send <b>artillery</b> or a <b>panzer division</b>.'];
     if (sec.limit === 'mobility') {
@@ -300,17 +343,18 @@ const UI = (() => {
   function pipeHTML(sec) {
     const f = flows(sec), rh = Sim.railhead(st, sec);
     const weakest = Math.min(f.trainRatio, f.truckRatio);
-    const seg = (mode, r, label, sub, neck) => `<div class="pipe-seg ${mode} ${tone(r)}"><span class="flow">${label}</span><i></i><span class="sub">${sub}</span>${neck && r < 1 && r === weakest ? '<span class="neck">narrowest</span>' : ''}</div>`;
+    // km: when the train extension and the truck leg share a cell, each gets a width in proportion to its distance
+    const seg = (mode, r, label, sub, neck, km) => `<div class="pipe-seg ${mode} ${tone(r)}"${km !== undefined && km > 0 ? ` style="flex: ${Math.max(1, km)} 1 auto"` : ''}><span class="flow">${label}</span><i></i><span class="sub">${sub}</span>${neck && r < 1 && r === weakest ? '<span class="neck">narrowest</span>' : ''}</div>`;
     // Icon, bar (full = 3 days of advancing), then days in hand: the same as the map badges
     const days = (v, c, cls) => `<span class="dayrow"><span>${c}</span><span class="bar ${cls}"><i style="width:${Math.min(100, v / 3 * 100)}%"></i></span><span class="${v < 1 ? 'warn' : ''}">${v.toFixed(1)} d</span></span>`;
     const past = rh.laid >= 1;
     return `
       <div class="pipe-node"><b>Warsaw</b><small>base</small></div>
-      ${seg('train', f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineShort ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`, true)}
+      ${seg('train', f.trainRatio, `🚂 ${t(f.trainTons)} t/d`, f.lineFull ? '<span class="warn">line limit</span>' : `needs ${t(f.trainNeed)}`, true)}
       <div class="pipe-node" title="${past ? `Trains run on ${t(rh.laid)} km past ${NODES[rh.node].name}; the depot is at the end of the track` : `The depot is at ${NODES[rh.node].name}`}"><b>${NODES[rh.node].name}</b>${health(rh.node)}<small>⛽ ${t(sec.depot.fuel)}</small><small>💥 ${t(sec.depot.ammo)}</small></div>
       <div class="pipe-pair" title="Train to the end of the track, then trucks to the front">
-        ${past ? seg('train extend', f.trainRatio, `🚂 +${t(rh.laid)} km`, 'to track end', false) : ''}
-        ${seg('truck', f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`, true)}
+        ${past ? seg('train extend', f.trainRatio, `🚂 +${t(rh.laid)} km`, 'to track end', false, rh.laid) : ''}
+        ${seg('truck', f.truckRatio, `🚚 ${t(f.truckCap)} t/d`, `${t(f.gap)} km`, true, past ? f.gap : 0)}
       </div>
       <div class="pipe-node"><b>Front</b><small>${days(f.daysF, '⛽', 'fuel')}</small><small>${days(f.daysA, '💥', 'ammo')}</small><small>uses ${t(f.need)}/d</small></div>
       ${nextStation(sec)}`;
@@ -330,6 +374,29 @@ const UI = (() => {
     const i = kms.findIndex(k => k > sec.front + 0.5);
     if (i < 0) return '<div class="pipe-next done"><span class="flow">🏁</span><span class="sub">line taken</span></div>';
     return `<div class="pipe-next" title="The next station the front will take"><span class="flow">${t(kms[i] - sec.front)} km</span><i></i><span class="sub">${NODES[line[i]].name}${OBJECTIVES.includes(line[i]) ? ' 🎯' : ''}</span></div>`;
+  }
+
+  // Our attack power against the Soviets in front, and the speed that allows.
+  // Soviet strength is shown as the attack power needed to go full speed through them, so the two numbers compare directly
+  function strengthHTML(sec) {
+    const ours = Sim.power(sec, 'attack');
+    const soviets = Math.max(8, sec.res) * MAX_SPEED / COMBAT_SPEED;
+    const lim = Sim.limits(sec);
+    const top = Math.min(lim.mobility, lim.combat);
+    const f = flows(sec);
+    // What holds it back most: supply when the front is running low and can't be refilled, otherwise the Soviets or its slowest units
+    const brake = Math.min(f.daysF, f.daysA) < 1 && Math.min(f.truckRatio, f.trainRatio) < 1 ? 'supply'
+      : lim.combat < lim.mobility ? 'Soviets' : 'road speed';
+    // Our share of the two strengths: over half and the Soviets can't slow it below full speed
+    const share = Math.round(ours / (ours + soviets) * 100);
+    const title = `Our attack power: ${Math.round(ours)} (infantry ${UNIT_TYPES.inf.attack}, panzers ${UNIT_TYPES.pz.attack}, artillery ${UNIT_TYPES.art.attack} each).\n`
+      + `Soviets in front: ${Math.round(soviets)}, the attack power needed to go full speed (${MAX_SPEED} km a day) through them.\n`
+      + `With full supply it can go about ${Math.round(top)} km a day: the Soviets allow ${Math.round(lim.combat)}, its slowest units ${Math.round(lim.mobility)}.\n`
+      + 'Bombers, artillery while holding, and pushing on wear the Soviets down; their reserves and counterattacks stiffen them.';
+    return `<span class="strength" title="${title}">`
+      + `<span>⚔️ <b>${Math.round(ours)}</b> vs <b>${Math.round(soviets)}</b></span>`
+      + `<span class="vs"><i style="width:${share}%"></i></span>`
+      + `<span>${Math.round(top)} km/d · ${brake}</span></span>`;
   }
 
   function freeBadge(id, n) {
@@ -361,13 +428,13 @@ const UI = (() => {
       c.focus.update();
       const rec = matchMix(sec);
       c.mix.update(rec);
-      c.mixNote.innerHTML = sec.fuelMix === rec ? '<span>matches what it uses</span>' : '<span><span class="warn">green line</span> matches what it uses</span>';
+      c.mixNote.innerHTML = sec.fuelMix === rec ? '<span>refills what it needs</span>' : '<span><span class="warn">green line</span> refills what it needs</span>';
       const forces = UNIT_ORDER.map(u => `<span class="force" title="${UNIT_TYPES[u].name}">${unitIcon(u)} ${UNIT_TYPES[u].short}: <b>${sec.forces[u]}</b></span>`).join('');
       const coming = [
         ...st.queue.filter(q => q.sector === sec.id).map(q => `${unitIcon(q.type)} ${UNIT_TYPES[q.type].short} loading`),
         ...st.marching.filter(m => m.sector === sec.id).map(m => `${unitIcon(m.type)} ${UNIT_TYPES[m.type].short} in ${Math.max(1, m.day - st.day + 1)} d`),
       ];
-      c.forces.innerHTML = forces + (coming.length ? `<span class="coming">coming: ${coming.join(', ')}</span>` : '');
+      c.forces.innerHTML = forces + strengthHTML(sec) + (coming.length ? `<span class="coming">coming: ${coming.join(', ')}</span>` : '');
     }
 
     // Reserves at Warsaw

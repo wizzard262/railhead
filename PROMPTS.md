@@ -222,6 +222,17 @@
 - The red line was smoothed by cutting each corner, so at a sharp bend (a sector far ahead of its neighbours) it passed behind the sector's own front point, leaving a taken town on the enemy side
 - The front now passes through every sector's front point (a Catmull-Rom curve), and each point is drawn 12 px towards the enemy, so a town just taken sits on our side. The shading, the teeth and the badge tails all follow the same line
 
+## 35. Strength bar, and fixes copied back from Beachhead
+
+- Steve: add the German vs Soviet strength bar from Beachhead, and copy back any of Beachhead's fixes and improvements (not new features)
+- **Strength in each sector row**, under its forces: ⚔️ our attack power vs the Soviets in front (shown as the attack power needed to go full speed through them), a green/red bar of the two, and the speed with full supply and what holds it back (supply, Soviets or road speed). Hover explains the numbers
+- **Rules fix: trains were cut twice** when a sector's track and station were both full; now cut once by the tightest part
+- **No more trains than the line takes**: whole trains, rounded up; the + button is off when the line is full; any extra go back to the pool at the start of each day (the report says so)
+- **Advice tells the real cause of a full line**: a damaged station (set Station), or track shared and full (repairs can't help: take trains off the other sector, or Hold)
+- Green mix now refills what is short instead of matching what is burnt; "(from the 3 free)" instead of "(3 free)"; engineers only suggested when the railhead is more than 20 km back; truck distance the same in the Trucks column and the advice; train and truck legs drawn to scale
+- Tests: the same `tools/test.js` as Beachhead (more trains never get fewer through, no sector sends more than its line takes, line takes is a whole number). Balance on Normal: leaving everything 34% (was 38%), recon bombing 83%, holding when short 91%, both 100%
+- Not copied (Beachhead only): flanking, ports, truck wear, petrol dump; the report already listed every line
+
 ## Sessions
 
 | # | Date | Length | What we did |
@@ -230,3 +241,4 @@
 | 2 | 2026-10-28 | about 310 min | Prompts 6–27: everything on one page with the sector rows at the bottom, mix and focus buttons, station stocks on hover, distances to the next station, trains running to the end of the converted track; a bigger Google Play badge and Railhead on the portfolio; Hold made worth using; versioned scripts; the map stretched to fill its box; train and truck legs; speech-bubble badges; a smaller report; row separators and a spread-out board map |
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |
 | 4 | 2026-10-30 | about 10 min | Prompts 33–34: prompts page full width; front drawn past taken towns (done alongside Beachhead) |
+| 5 | 2026-11-03 | about 30 min | Prompt 35: strength bar and fixes copied back from Beachhead |

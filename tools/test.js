@@ -6,7 +6,7 @@ load('data.js'); load('sim.js');
 
 // Fingerprint of 30 full games per strategy below. It changes only when the rules or numbers change.
 // After a deliberate rules change, run the tests and paste the new value it prints here
-const FINGERPRINT = 'd25a3866';
+const FINGERPRINT = '3c2213a7';
 
 let failed = 0;
 function check(name, fn) {
@@ -142,6 +142,84 @@ check('a unit cannot be sent without free trains', () => {
 check('day 1 is the campaign start date', () => {
   const expected = START_DATE.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
   assert(Sim.dateText(1) === expected, `day 1 shows ${Sim.dateText(1)}`);
+});
+
+check('sending more trains never gets fewer through', () => {
+  // Through a game, for each army: add trains one at a time and check what gets through never drops
+  for (let seed = 1; seed <= 10; seed++) {
+    const st = Sim.newGame(seed);
+    for (let day = 0; day < 40 && !st.won && !st.lost; day++) {
+      if (day % 5 === 0) for (const sec of st.sectors) {
+        const kept = sec.trains;
+        let last = -1;
+        for (let n = 0; n <= 12; n++) {
+          sec.trains = n;
+          const got = Sim.forecast(st)[sec.id].trains;
+          assert(got >= last - 1e-6, `seed ${seed} day ${st.day} ${sec.id}: ${n} trains get ${got.toFixed(2)} through, ${n - 1} got ${last.toFixed(2)}`);
+          last = got;
+        }
+        sec.trains = kept;
+      }
+      Sim.endDay(st);
+    }
+  }
+});
+
+check('each day starts with no army sending more trains than its line takes', () => {
+  if (!Sim.trimTrains) return;   // only where sim.js has the train limit
+  for (let seed = 1; seed <= 10; seed++) {
+    const st = Sim.newGame(seed);
+    for (let day = 0; day < 40 && !st.won && !st.lost; day++) {
+      // Pile every army's trains up, as a player might, then end the day
+      for (const sec of st.sectors) sec.trains += 6;
+      Sim.endDay(st);
+      for (const sec of st.sectors) {
+        const sends = sec.trains + Sim.troopTrains(st, sec.id);
+        assert(sec.trains === 0 || sends <= Sim.lineTakes(st, sec), `seed ${seed} day ${st.day} ${sec.id}: sends ${sends}, line takes ${Sim.lineTakes(st, sec)}`);
+      }
+    }
+  }
+});
+
+check('line takes is a whole number, rounded up', () => {
+  if (!Sim.lineTakes) return;
+  const st = Sim.newGame(4);
+  for (const sec of st.sectors) {
+    const got = Sim.forecast(st)[sec.id].trains, takes = Sim.lineTakes(st, sec);
+    assert(Number.isInteger(takes) && takes >= got - 1e-6 && takes < got + 1, `${sec.id}: ${got.toFixed(2)} get through, line takes ${takes}`);
+  }
+});
+
+check('unused petrol piles up in the beach dump and is drawn on later', () => {
+  if (typeof FUEL_DUMP_MAX === 'undefined') return;   // Railhead has no beach dump
+  const st = Sim.newGame(5);
+  // Ammo-heavy mixes leave petrol ashore: the dump fills, never past its limit
+  for (const sec of st.sectors) sec.fuelMix = 20;
+  for (let day = 0; day < 8; day++) Sim.endDay(st);
+  assert(st.fuelDump > 0, 'the dump stayed empty');
+  assert(st.fuelDump <= FUEL_DUMP_MAX, `the dump holds ${st.fuelDump} t, over ${FUEL_DUMP_MAX}`);
+  // A storm with fuel-heavy mixes: the trains draw on the dump
+  const before = st.fuelDump;
+  for (const sec of st.sectors) sec.fuelMix = 80;
+  st.storm = 3;
+  Sim.endDay(st);
+  assert(st.fuelDump < before, `the dump went from ${before} t to ${st.fuelDump} t in a storm`);
+});
+
+check('an army behind its neighbour catches up (flanking)', () => {
+  if (typeof FLANK_PER === 'undefined') return;   // Railhead has no flanking
+  // The same day twice: once with US First level with US Third, once far ahead of it
+  const advance = lead => {
+    const st = Sim.newGame(3);
+    const first = st.sectors.find(s => s.id === 'centre'), third = st.sectors.find(s => s.id === 'south');
+    if (lead) first.front = lineEnd(first) * 0.6;
+    const before = third.front;
+    Sim.endDay(st);
+    return third.front - before;
+  };
+  const level = advance(false), behind = advance(true);
+  assert(behind > level * 1.1, `US Third went ${behind.toFixed(1)} km when behind, ${level.toFixed(1)} km when level`);
+  assert(Object.values(Sim.flankLead(Sim.newGame(3))).every(v => v >= 0), 'how far behind is never negative');
 });
 
 console.log(failed ? `\n${failed} failed` : '\nall passed');

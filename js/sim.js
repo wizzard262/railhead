@@ -73,6 +73,8 @@ const Sim = (() => {
     }
     st.rand = rng(seed);
     arrivals(st);
+    // No sector starts with more trains than its line can take
+    trimTrains(st);
     st.report = ['22 June 1941. The attack has begun. Keep the army moving east: take Vitebsk, Smolensk and Roslavl.'];
     return st;
   }
@@ -169,16 +171,13 @@ const Sim = (() => {
     const got = Object.assign({}, want);
     let total = Object.values(got).reduce((a, b) => a + b, 0);
     if (total > TRAINS_PER_DAY) for (const id in got) got[id] *= TRAINS_PER_DAY / total;
-    for (let pass = 0; pass < 4; pass++) {
-      const load = {};
-      for (const id in got) for (const r of use[id]) load[r] = (load[r] || 0) + got[id];
-      for (const r in load) {
-        const c = cap(r);
-        if (load[r] > c + 1e-6) {
-          const f = c / load[r];
-          for (const id in got) if (use[id].includes(r)) got[id] *= f;
-        }
-      }
+    // Each sector is cut once, by the tightest track or station on its way (cutting it at every full one cut it twice)
+    const load = {};
+    for (const id in got) for (const r of use[id]) load[r] = (load[r] || 0) + got[id];
+    for (const id in got) {
+      let keep = 1;
+      for (const r of use[id]) if (load[r] > cap(r) + 1e-6) keep = Math.min(keep, cap(r) / load[r]);
+      got[id] *= keep;
     }
     return got;
   }
@@ -192,6 +191,39 @@ const Sim = (() => {
       out[sec.id] = { trains: got[sec.id], supplyTrains: Math.max(0, got[sec.id] - troop) };
     }
     return out;
+  }
+
+  // Trains a day that get through to this sector, rounded up to a whole train: the most it can usefully send
+  function lineTakes(st, sec, got = allocateTrains(st)) {
+    return Math.ceil(got[sec.id] - 1e-6);
+  }
+
+  // Could this sector send one more train and still get every one through (rounded up)?
+  function canAddTrain(st, sec) {
+    sec.trains++;
+    const fits = sec.trains + troopTrains(st, sec.id) <= lineTakes(st, sec);
+    sec.trains--;
+    return fits;
+  }
+
+  // Start of the day: send back trains the lines can't take, so every sector sends no more than gets through (rounded up).
+  // One sector at a time, the most over first: taking trains off one gives the others sharing its track more room
+  function trimTrains(st) {
+    const sent = {};
+    for (let pass = 0; pass < 50; pass++) {
+      const got = allocateTrains(st);
+      // How far each sector is over what its line takes
+      let worst = null, over = 0;
+      for (const sec of st.sectors) {
+        const room = Math.max(0, lineTakes(st, sec, got) - troopTrains(st, sec.id));
+        if (sec.trains - room > over) { over = sec.trains - room; worst = sec; }
+      }
+      if (!worst) break;
+      // Send back just one train, then look again: what the others get changes with it
+      worst.trains--;
+      sent[worst.id] = (sent[worst.id] || 0) + 1;
+    }
+    return sent;
   }
 
   function freePool(st, field, total) {
@@ -534,6 +566,9 @@ const Sim = (() => {
     st.day++;
     arrivals(st);
     for (const r of REINFORCEMENTS) if (r.day === st.day) rep.push(`🆕 ${UNIT_TYPES[r.type].name} arrived at Warsaw, ready to send east.`);
+    // The new day: trains a line can't take go back to the pool
+    const sentBack = trimTrains(st);
+    for (const id in sentBack) rep.push(`🚂 ${SECTOR_NAME(id)}: ${sentBack[id]} train${sentBack[id] > 1 ? 's' : ''} sent back to the pool; its line can't take them.`);
 
     if (OBJECTIVES.every(id => st.nodes[id].captured)) {
       st.won = true; st.wonDay = st.day - 1;
@@ -555,6 +590,7 @@ const Sim = (() => {
   return {
     LINES, LINKS, linkKey, lineEnd, troopTrains, newGame, endDay, needs, power, limits, railhead, railheadIndex, gap,
     truckCapacity, forecast, freePool, freeTrains, sendUnit, cancelUnit, dateText, sectorDef,
+    lineTakes, canAddTrain, trimTrains,
   };
 })();
 
