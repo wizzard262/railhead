@@ -233,6 +233,15 @@
 - Tests: the same `tools/test.js` as Beachhead (more trains never get fewer through, no sector sends more than its line takes, line takes is a whole number). Balance on Normal: leaving everything 34% (was 38%), recon bombing 83%, holding when short 91%, both 100%
 - Not copied (Beachhead only): flanking, ports, truck wear, petrol dump; the report already listed every line
 
+## 36. Map readable on a phone
+
+- Steve: fix the tiny map on phones (from the to-do list)
+- On a phone (520 px wide or less) the map is now drawn 760 px wide instead of squeezed to the screen, so station names can be read, and it swipes sideways inside its box; a line under it says "Swipe the map sideways to see it all". The page itself still has no sideways scroll
+- **End day** and **?** sit outside the swiping part, so they stay top right
+- The old start-up error (a map 0 px wide drew a gradient with bad numbers) can't happen now: the map waits until its box has a size
+- Laptops and tablets are unchanged (checked at 600, 1100 and 1600 px wide)
+- The old to-do "copy v19 to the website" was dropped: the game now goes live from this repo on GitHub Pages
+
 ## Sessions
 
 | # | Date | Length | What we did |
@@ -242,3 +251,4 @@
 | 3 | 2026-10-28 | about 25 min | Prompt 21: reserves drawn beside Warsaw, one picture per unit, and soldier, tank and gun icons on the force lists |
 | 4 | 2026-10-30 | about 10 min | Prompts 33–34: prompts page full width; front drawn past taken towns (done alongside Beachhead) |
 | 5 | 2026-11-03 | about 30 min | Prompt 35: strength bar and fixes copied back from Beachhead |
+| 6 | 2026-11-07 | about 20 min | Prompt 36: map readable on a phone (drawn wider, swipes sideways) |

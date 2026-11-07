@@ -207,7 +207,11 @@
     .pipe-node small, .pipe-seg .sub { font-size: 9.5px; }
     .pipe-seg .flow { white-space: normal; line-height: 1.15; }
     #end-btn { padding: 4px 10px; font-size: 15px; }
+    /* Phones: the map is drawn wide enough to read and swipes sideways inside its box */
+    .mapbox .frame { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+    .mapwrap .map-hint { display: block; }
   }
+  .map-hint { display: none; margin: 3px 0 0; font-size: 11.5px; color: var(--muted); text-align: center; }
 </style>
 </head>
 <body>
@@ -221,21 +225,23 @@
     <button id="new-btn">New game</button>
     <a href="prompts.html" target="_blank" rel="noopener">prompts</a>
     <a href="screenshots.html" target="_blank" rel="noopener">screenshots</a>
-    <span id="ver">v35</span>
+    <span id="ver">v36</span>
   </div>
 </header>
 
 <div id="top">
   <div class="mapwrap">
     <div class="mapbox">
+      <!-- The frame scrolls sideways on a phone; the buttons sit outside it so they stay put -->
       <div class="frame">
         <canvas id="map" aria-label="Staff map of the front, from Warsaw to Smolensk"></canvas>
-        <div class="map-buttons">
-          <button id="help-btn2" title="How to play (H)" aria-label="How to play">?</button>
-          <button id="end-btn">End day ▶ <span>Enter</span></button>
-        </div>
+      </div>
+      <div class="map-buttons">
+        <button id="help-btn2" title="How to play (H)" aria-label="How to play">?</button>
+        <button id="end-btn">End day ▶ <span>Enter</span></button>
       </div>
     </div>
+    <p class="map-hint">Swipe the map sideways to see it all</p>
     <div class="legend">
       <span><i class="lg-track"></i>Converted track</span>
       <span><i class="lg-broad"></i>Russian broad gauge</span>
@@ -301,10 +307,10 @@
   </div>
 </div>
 
-<script src="js/data.js?v=35"></script>
-<script src="js/sim.js?v=35"></script>
-<script src="js/draw.js?v=35"></script>
-<script src="js/ui.js?v=35"></script>
-<script src="js/main.js?v=35"></script>
+<script src="js/data.js?v=36"></script>
+<script src="js/sim.js?v=36"></script>
+<script src="js/draw.js?v=36"></script>
+<script src="js/ui.js?v=36"></script>
+<script src="js/main.js?v=36"></script>
 </body>
 </html>
